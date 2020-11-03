@@ -42,7 +42,6 @@ class NowPlayingListViewController: UIViewController {
         
         setupUI()
     }
-   
 }
 
 extension NowPlayingListViewController {

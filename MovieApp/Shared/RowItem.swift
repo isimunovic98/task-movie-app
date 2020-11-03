@@ -9,9 +9,9 @@ import Foundation
 
 class RowItem <ItemContent, ItemType>{
     var content: ItemContent
-    var type: ItemType
+    var type: MovieDetailsCellTypes
     
-    init(content: ItemContent, type: ItemType) {
+    init(content: ItemContent, type: MovieDetailsCellTypes) {
         self.content = content
         self.type = type
     }

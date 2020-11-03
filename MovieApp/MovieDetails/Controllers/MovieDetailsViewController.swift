@@ -138,7 +138,7 @@ extension MovieDetailsViewController: UITableViewDelegate, UITableViewDataSource
         
         switch itemType {
         
-        case MovieDetailsCellTypes.poster:
+        case .poster:
             let cell: MoviePosterCell = tableView.dequeue(for: indexPath)
             
             let imageUrl = rowItems[indexPath.row].content
@@ -146,7 +146,7 @@ extension MovieDetailsViewController: UITableViewDelegate, UITableViewDataSource
             
             return cell
             
-        case MovieDetailsCellTypes.title:
+        case .title:
             let cell: MovieTitleCell = tableView.dequeue(for: indexPath)
             
             let title = rowItems[indexPath.row].content
@@ -154,7 +154,7 @@ extension MovieDetailsViewController: UITableViewDelegate, UITableViewDataSource
             
             return cell
             
-        case MovieDetailsCellTypes.genres:
+        case .genres:
             let cell: MovieGenresCell = tableView.dequeue(for: indexPath)
             
             let genres = rowItems[indexPath.row].content
@@ -162,7 +162,7 @@ extension MovieDetailsViewController: UITableViewDelegate, UITableViewDataSource
             
             return cell
             
-        case MovieDetailsCellTypes.quote:
+        case .quote:
             let cell: MovieQuoteCell = tableView.dequeue(for: indexPath)
             
             let quote = rowItems[indexPath.row].content
@@ -170,16 +170,13 @@ extension MovieDetailsViewController: UITableViewDelegate, UITableViewDataSource
             
             return cell
             
-        case MovieDetailsCellTypes.overview:
+        case .overview:
             let cell: MovieOverviewCell = tableView.dequeue(for: indexPath)
             
             let overview = rowItems[indexPath.row].content
             cell.setMovieOverview(overview: overview as! String)
             
             return cell
-            
-        default:
-            return UITableViewCell()
         }
     }
     
@@ -218,7 +215,6 @@ extension MovieDetailsViewController {
             self.presentNilURLAlert()
             return
         }
-        
         view.showBlurLoader(blurLoader: blurLoader)
         
         let session = URLSession.shared
