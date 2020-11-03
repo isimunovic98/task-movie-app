@@ -23,10 +23,12 @@ class NowPlayingListViewController: UIViewController {
         return tableView
     }()
     
-    override var preferredStatusBarStyle: UIStatusBarStyle {
-        return .lightContent
-    }
-    
+    let blurLoader: BlurLoader = {
+        let view = BlurLoader()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+
     //MARK: Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -37,14 +39,20 @@ class NowPlayingListViewController: UIViewController {
 }
 
 extension NowPlayingListViewController {
+    
+    override var preferredStatusBarStyle: UIStatusBarStyle {
+        return .lightContent
+    }
+    
     fileprivate func setupUI() {
         view.backgroundColor = UIColor(named: "backgroundColor")
         
         view.addSubview(nowPlayingTableView)
+        view.addSubview(blurLoader)
         
         configureTableView()
         setupConstraints()
-        fetchData()
+        fetchData(showLoader: true)
     }
     
     fileprivate func setupConstraints() {
@@ -117,10 +125,15 @@ extension NowPlayingListViewController: UITableViewDelegate, UITableViewDataSour
 
 
 extension NowPlayingListViewController {
-    func fetchData() {
+    func fetchData(showLoader: Bool) {
+        
+        if showLoader {
+            view.showBlurLoader(blurLoader: blurLoader)
+        }
         let url = URL(string: NowPlayingListViewController.url)
         
         guard url != nil else {
+            self.presentNilURLAlert()
             return
         }
         loadDataIntoTableView(from: url!)
@@ -138,11 +151,11 @@ extension NowPlayingListViewController {
                     self.movies = movies.results
                     DispatchQueue.main.async {
                         self.nowPlayingTableView.reloadData()
-                        
+                        self.view.removeBlurLoader(blurLoader: self.blurLoader)
                     }
                     
-                } catch let jsonErr {
-                    print("Failed to decode json: ", jsonErr)
+                } catch {
+                    self.presentJSONErrorAlert()
                 }
             }
         }

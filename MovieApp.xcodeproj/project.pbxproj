@@ -13,6 +13,7 @@
 		0246204725519FD0003F6770 /* Extensions+UITableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0246204625519FD0003F6770 /* Extensions+UITableView.swift */; };
 		024B961C255173E10026FA0E /* BlurLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 024B961B255173E10026FA0E /* BlurLoader.swift */; };
 		024B961F255174380026FA0E /* Extensions+UIView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 024B961E255174380026FA0E /* Extensions+UIView.swift */; };
+		0250EC682551D1780034E527 /* Extensions+UIViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0250EC672551D1780034E527 /* Extensions+UIViewController.swift */; };
 		02858A00255090CE00112031 /* FavouritesButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 028589FF255090CE00112031 /* FavouritesButton.swift */; };
 		02858A032550927F00112031 /* WatchedButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02858A022550927F00112031 /* WatchedButton.swift */; };
 		028FA7D22550365A00942985 /* MoviePosterCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 028FA7D12550365A00942985 /* MoviePosterCell.swift */; };
@@ -41,6 +42,7 @@
 		0246204625519FD0003F6770 /* Extensions+UITableView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Extensions+UITableView.swift"; sourceTree = "<group>"; };
 		024B961B255173E10026FA0E /* BlurLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlurLoader.swift; sourceTree = "<group>"; };
 		024B961E255174380026FA0E /* Extensions+UIView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Extensions+UIView.swift"; sourceTree = "<group>"; };
+		0250EC672551D1780034E527 /* Extensions+UIViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Extensions+UIViewController.swift"; sourceTree = "<group>"; };
 		028589FF255090CE00112031 /* FavouritesButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavouritesButton.swift; sourceTree = "<group>"; };
 		02858A022550927F00112031 /* WatchedButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchedButton.swift; sourceTree = "<group>"; };
 		028FA7D12550365A00942985 /* MoviePosterCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoviePosterCell.swift; sourceTree = "<group>"; };
@@ -193,6 +195,7 @@
 				024B961E255174380026FA0E /* Extensions+UIView.swift */,
 				0246204325519F89003F6770 /* Extensions+UITableViewCell.swift */,
 				0246204625519FD0003F6770 /* Extensions+UITableView.swift */,
+				0250EC672551D1780034E527 /* Extensions+UIViewController.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -317,6 +320,7 @@
 				0246204725519FD0003F6770 /* Extensions+UITableView.swift in Sources */,
 				029C62D6254C31C000947B25 /* AppDelegate.swift in Sources */,
 				029C62F3254C328C00947B25 /* NowPlayingCell.swift in Sources */,
+				0250EC682551D1780034E527 /* Extensions+UIViewController.swift in Sources */,
 				02BBD5C2254C3CB700058844 /* Movie.swift in Sources */,
 				028FA7E825503F6500942985 /* EnumMovieDetailsCellTypes.swift in Sources */,
 				0246204025519EF4003F6770 /* ReusableView.swift in Sources */,
