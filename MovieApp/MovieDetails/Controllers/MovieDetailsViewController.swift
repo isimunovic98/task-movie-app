@@ -11,8 +11,11 @@ class MovieDetailsViewController: UIViewController {
     
     static var response: String = "https://api.themoviedb.org/3/movie/"
     static var apiKey: String = "?api_key=aaf38b3909a4f117db3fb67e13ac6ef7&language=en-US"
-        
+    
     //MARK: Properties
+    let userDefaults = UserDefaults.standard
+    var isFavourite: Bool = false
+    var isWatched: Bool = false
     var id: Int
     var movieDetails: MovieDetails?
     var rowItems = [RowItem<Any, Any>]()
@@ -39,46 +42,36 @@ class MovieDetailsViewController: UIViewController {
         return button
     }()
     
-    let watchedButtonView: WatchedButton = {
-        let view = WatchedButton()
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
+    let watchedButton: WatchedCustomButton = {
+        let button = WatchedCustomButton()
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
     }()
     
-    let favouritesButtonView: FavouritesButton = {
-        let view = FavouritesButton()
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
+    let favouritesButton: FavouritesCustomButton = {
+        let button = FavouritesCustomButton()
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
     }()
     
     //MARK: Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
+
     }
     
     //MARK: Init
     init(movieId id: Int) {
         self.id = id
         super.init(nibName: nil, bundle: nil)
+        self.setButtonStates()
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
-    func createScreenData(fromDetails details: MovieDetails) {
-        rowItems.append(RowItem(content: details.poster_path , type: MovieDetailsCellTypes.poster))
-        rowItems.append(RowItem(content: details.title , type: MovieDetailsCellTypes.title))
-        rowItems.append(RowItem(content: details.genres , type: MovieDetailsCellTypes.genres))
-        rowItems.append(RowItem(content: details.tagline , type: MovieDetailsCellTypes.quote))
-        rowItems.append(RowItem(content: details.overview , type: MovieDetailsCellTypes.overview))
-    }
-    
-    //MARK: Actions
-    @objc func goBack() {
-        navigationController?.popViewController(animated: true)
-    }
+
 }
 
 //MARK: UI
@@ -89,14 +82,11 @@ extension MovieDetailsViewController {
     }
     
     fileprivate func setupUI() {
-        view.addSubview(movieDetailsTableView)
-        view.addSubview(backButton)
-        view.addSubview(favouritesButtonView)
-        view.addSubview(watchedButtonView)
-        
-        backButton.addTarget(self, action: #selector(goBack), for: .touchUpInside)
+        addSubviews()
         setupConstraints()
         configureTableView()
+        populateTableView()
+        setupButtonActions()
     }
     
     fileprivate func setupConstraints() {
@@ -111,18 +101,76 @@ extension MovieDetailsViewController {
             backButton.heightAnchor.constraint(equalToConstant: 40),
             backButton.widthAnchor.constraint(equalToConstant: 40),
             
-            favouritesButtonView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            favouritesButtonView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -15),
-            favouritesButtonView.heightAnchor.constraint(equalToConstant: 45),
-            favouritesButtonView.widthAnchor.constraint(equalToConstant: 45),
+            favouritesButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            favouritesButton.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -15),
+            favouritesButton.heightAnchor.constraint(equalToConstant: 45),
+            favouritesButton.widthAnchor.constraint(equalToConstant: 45),
             
-            watchedButtonView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            watchedButtonView.trailingAnchor.constraint(equalTo: favouritesButtonView.leadingAnchor, constant: -15),
-            watchedButtonView.heightAnchor.constraint(equalToConstant: 45),
-            watchedButtonView.widthAnchor.constraint(equalToConstant: 45)
+            watchedButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            watchedButton.trailingAnchor.constraint(equalTo: favouritesButton.leadingAnchor, constant: -15),
+            watchedButton.heightAnchor.constraint(equalToConstant: 45),
+            watchedButton.widthAnchor.constraint(equalToConstant: 45)
         ]
         
         NSLayoutConstraint.activate(constraints)
+    }
+}
+
+//MARK: Methods
+extension MovieDetailsViewController {
+    fileprivate func addSubviews() {
+        view.addSubview(movieDetailsTableView)
+        view.addSubview(backButton)
+        view.addSubview(favouritesButton)
+        view.addSubview(watchedButton)
+    }
+    
+    fileprivate func populateTableView() {
+        fetchData {
+            DispatchQueue.main.async {
+                self.createScreenData(fromDetails: self.movieDetails!)
+                self.movieDetailsTableView.reloadData()
+                self.view.removeBlurLoader(blurLoader: self.blurLoader)
+            }
+        }
+    }
+    
+    func createScreenData(fromDetails details: MovieDetails) {
+        rowItems.append(RowItem(content: details.poster_path , type: MovieDetailsCellTypes.poster))
+        rowItems.append(RowItem(content: details.title , type: MovieDetailsCellTypes.title))
+        rowItems.append(RowItem(content: details.genres , type: MovieDetailsCellTypes.genres))
+        rowItems.append(RowItem(content: details.tagline , type: MovieDetailsCellTypes.quote))
+        rowItems.append(RowItem(content: details.overview , type: MovieDetailsCellTypes.overview))
+    }
+    
+    fileprivate func setupButtonActions() {
+        backButton.addTarget(self, action: #selector(goBack), for: .touchUpInside)
+        watchedButton.addTarget(self, action: #selector(watchedButtonTapped), for: .touchUpInside)
+        favouritesButton.addTarget(self, action: #selector(favouriteButtonTapped), for: .touchUpInside)
+    }
+    
+    func setButtonStates() {
+        isFavourite = userDefaults.bool(forKey: "favourite\(id)")
+        isWatched = userDefaults.bool(forKey: "watched\(id)")
+        favouritesButton.isSelected = self.isFavourite
+        watchedButton.isSelected = self.isWatched
+    }
+    
+    //MARK: Actions
+    @objc func watchedButtonTapped() {
+        isWatched = !isWatched
+        watchedButton.isSelected = isWatched
+        userDefaults.setValue(isWatched, forKey: "watched\(id)")
+    }
+    
+    @objc func favouriteButtonTapped() {
+        isFavourite = !isFavourite
+        favouritesButton.isSelected = isFavourite
+        userDefaults.setValue(isFavourite, forKey: "favourite\(id)")
+    }
+    
+    @objc func goBack() {
+        navigationController?.popViewController(animated: true)
     }
 }
 
@@ -188,14 +236,6 @@ extension MovieDetailsViewController: UITableViewDelegate, UITableViewDataSource
         movieDetailsTableView.register(MovieGenresCell.self, forCellReuseIdentifier: MovieGenresCell.reuseIdentifier)
         movieDetailsTableView.register(MovieQuoteCell.self, forCellReuseIdentifier: MovieQuoteCell.reuseIdentifier)
         movieDetailsTableView.register(MovieOverviewCell.self, forCellReuseIdentifier: MovieOverviewCell.reuseIdentifier)
-
-        fetchData {
-            DispatchQueue.main.async {
-                self.createScreenData(fromDetails: self.movieDetails!)
-                self.movieDetailsTableView.reloadData()
-                self.view.removeBlurLoader(blurLoader: self.blurLoader)
-            }
-        }
     }
     
     func setTableViewDelegates() {

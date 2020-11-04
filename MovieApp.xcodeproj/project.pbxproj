@@ -15,7 +15,8 @@
 		024B961F255174380026FA0E /* Extensions+UIView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 024B961E255174380026FA0E /* Extensions+UIView.swift */; };
 		0250EC682551D1780034E527 /* Extensions+UIViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0250EC672551D1780034E527 /* Extensions+UIViewController.swift */; };
 		0250EC6C2551E4870034E527 /* ShaderBottomToTop.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0250EC6B2551E4870034E527 /* ShaderBottomToTop.swift */; };
-		02858A00255090CE00112031 /* FavouritesButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 028589FF255090CE00112031 /* FavouritesButton.swift */; };
+		028315BD2552E5C3008F9963 /* WatchedCustomButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 028315BC2552E5C3008F9963 /* WatchedCustomButton.swift */; };
+		028315C02552E76F008F9963 /* FavouritesCustomButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 028315BF2552E76F008F9963 /* FavouritesCustomButton.swift */; };
 		02858A032550927F00112031 /* WatchedButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02858A022550927F00112031 /* WatchedButton.swift */; };
 		028FA7D22550365A00942985 /* MoviePosterCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 028FA7D12550365A00942985 /* MoviePosterCell.swift */; };
 		028FA7D62550383800942985 /* MovieTitleCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 028FA7D52550383800942985 /* MovieTitleCell.swift */; };
@@ -45,7 +46,8 @@
 		024B961E255174380026FA0E /* Extensions+UIView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Extensions+UIView.swift"; sourceTree = "<group>"; };
 		0250EC672551D1780034E527 /* Extensions+UIViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Extensions+UIViewController.swift"; sourceTree = "<group>"; };
 		0250EC6B2551E4870034E527 /* ShaderBottomToTop.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShaderBottomToTop.swift; sourceTree = "<group>"; };
-		028589FF255090CE00112031 /* FavouritesButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavouritesButton.swift; sourceTree = "<group>"; };
+		028315BC2552E5C3008F9963 /* WatchedCustomButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchedCustomButton.swift; sourceTree = "<group>"; };
+		028315BF2552E76F008F9963 /* FavouritesCustomButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavouritesCustomButton.swift; sourceTree = "<group>"; };
 		02858A022550927F00112031 /* WatchedButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchedButton.swift; sourceTree = "<group>"; };
 		028FA7D12550365A00942985 /* MoviePosterCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoviePosterCell.swift; sourceTree = "<group>"; };
 		028FA7D52550383800942985 /* MovieTitleCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovieTitleCell.swift; sourceTree = "<group>"; };
@@ -83,7 +85,8 @@
 			isa = PBXGroup;
 			children = (
 				02858A022550927F00112031 /* WatchedButton.swift */,
-				028589FF255090CE00112031 /* FavouritesButton.swift */,
+				028315BC2552E5C3008F9963 /* WatchedCustomButton.swift */,
+				028315BF2552E76F008F9963 /* FavouritesCustomButton.swift */,
 			);
 			path = Buttons;
 			sourceTree = "<group>";
@@ -325,9 +328,10 @@
 				02E2924A254C64580088E7A6 /* Extensions+String.swift in Sources */,
 				028FA7F225506D7A00942985 /* Extensions+UIImageView.swift in Sources */,
 				02BBD5C8254C3F2E00058844 /* NowPlayingListViewController.swift in Sources */,
-				02858A00255090CE00112031 /* FavouritesButton.swift in Sources */,
 				024B961F255174380026FA0E /* Extensions+UIView.swift in Sources */,
 				0246204425519F89003F6770 /* Extensions+UITableViewCell.swift in Sources */,
+				028315BD2552E5C3008F9963 /* WatchedCustomButton.swift in Sources */,
+				028315C02552E76F008F9963 /* FavouritesCustomButton.swift in Sources */,
 				0246204725519FD0003F6770 /* Extensions+UITableView.swift in Sources */,
 				029C62D6254C31C000947B25 /* AppDelegate.swift in Sources */,
 				029C62F3254C328C00947B25 /* NowPlayingCell.swift in Sources */,
