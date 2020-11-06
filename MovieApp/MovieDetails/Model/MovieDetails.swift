@@ -13,9 +13,11 @@ struct Genre: Codable {
 }
 
 class MovieDetails: Codable {
+    var id: Int
     var genres: [Genre]
     var poster_path: String
     var title: String
     var overview: String
     var tagline: String
+    var release_date: String
 }

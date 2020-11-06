@@ -1,21 +1,18 @@
 //
-//  NowPlayingCell.swift
+//  WatchedFavouriteCell.swift
 //  MovieApp
 //
-//  Created by Ivan Simunovic on 30/10/2020.
+//  Created by Ivan Simunovic on 05/11/2020.
 //
 
 import UIKit
 
-class NowPlayingCell: UITableViewCell {
-    
-    static var posterPath: String = "https://image.tmdb.org/t/p/w500/"
-    
+class WatchedFavouriteCell: UITableViewCell {
+
     //MARK: Properties
-    let userDefaults = UserDefaults.standard
-    var isFavourite: Bool = false
-    var isWatched: Bool = false
-    var movieId: Int = 0
+    var movie: MovieAppMovie?
+
+    var button: UIButton?
     
     let moviePosterImageView: UIImageView = {
         let imageView = UIImageView()
@@ -46,18 +43,7 @@ class NowPlayingCell: UITableViewCell {
         label.textColor = .systemGray3
         return label
     }()
-    
-    let watchedButton: WatchedCustomButton = {
-        let button = WatchedCustomButton()
-        button.translatesAutoresizingMaskIntoConstraints = false
-        return button
-    }()
-    
-    let favouritesButton: FavouritesCustomButton = {
-        let button = FavouritesCustomButton()
-        button.translatesAutoresizingMaskIntoConstraints = false
-        return button
-    }()
+
     
     //MARK: Init
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -70,16 +56,19 @@ class NowPlayingCell: UITableViewCell {
     }
 }
 
-//MARK: UI
-extension NowPlayingCell {
+//MARK: - UI
+extension WatchedFavouriteCell {
     fileprivate func setupUI() {
+        setupAppearance()
+        addSubviewsToContentView()
+        setupConstraints()
+    }
+    
+    fileprivate func setupAppearance() {
         selectionStyle = .none
         self.backgroundColor = UIColor(named: "backgroundColor")
         contentView.backgroundColor = UIColor(named: "cellColor")
         contentView.layer.cornerRadius = 15
-        addSubviewsToContentView()
-        setupConstraints()
-        setupButtonActions()
     }
     
     fileprivate func addSubviewsToContentView() {
@@ -87,8 +76,6 @@ extension NowPlayingCell {
         contentView.addSubview(yearOfReleaseLabel)
         contentView.addSubview(movieTitleLabel)
         contentView.addSubview(movieOverviewLabel)
-        contentView.addSubview(watchedButton)
-        contentView.addSubview(favouritesButton)
     }
     
     fileprivate func setupConstraints() {
@@ -110,57 +97,56 @@ extension NowPlayingCell {
             
             movieOverviewLabel.topAnchor.constraint(equalTo: movieTitleLabel.bottomAnchor, constant: 5),
             movieOverviewLabel.leadingAnchor.constraint(equalTo: movieTitleLabel.leadingAnchor),
-            movieOverviewLabel.trailingAnchor.constraint(equalTo: movieTitleLabel.trailingAnchor),
-            movieOverviewLabel.bottomAnchor.constraint(equalTo: favouritesButton.topAnchor),
-            
-            favouritesButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
-            favouritesButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -10),
-            favouritesButton.heightAnchor.constraint(equalToConstant: 45),
-            favouritesButton.widthAnchor.constraint(equalToConstant: 45),
-            
-            watchedButton.trailingAnchor.constraint(equalTo: favouritesButton.leadingAnchor),
-            watchedButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
-            watchedButton.heightAnchor.constraint(equalToConstant: 45),
-            watchedButton.widthAnchor.constraint(equalToConstant: 45)
+            movieOverviewLabel.trailingAnchor.constraint(equalTo: movieTitleLabel.trailingAnchor)
         ]
         
         NSLayoutConstraint.activate(constraints)
     }
 }
 
-//MARK: Methods
-extension NowPlayingCell {
-    func configure(withMovie movie: Movie) {
-        movieId = movie.id
-        moviePosterImageView.setImageFromUrl(from: NowPlayingCell.posterPath + movie.poster_path)
-        yearOfReleaseLabel.text = movie.release_date.extractYear
+//MARK: - Methods
+extension WatchedFavouriteCell {
+    
+    func configure(withMovie movie: MovieAppMovie) {
+        self.movie = movie
+        moviePosterImageView.setImageFromUrl(from: NowPlayingCell.posterPath + movie.posterPath!)
+        yearOfReleaseLabel.text = movie.releaseDate?.extractYear
         movieTitleLabel.text = movie.title
         movieOverviewLabel.text = movie.overview
-        setButtonStates()
+        setupButton()
     }
     
-    fileprivate func setupButtonActions() {
-        watchedButton.addTarget(self, action: #selector(watchedButtonTapped), for: .touchUpInside)
-        favouritesButton.addTarget(self, action: #selector(favouriteButtonTapped), for: .touchUpInside)
+    fileprivate func setupButton() {
+        
+        let interactionButton: WatchedCustomButton = {
+            let button = WatchedCustomButton()
+            button.translatesAutoresizingMaskIntoConstraints = false
+            return button
+        }()
+        
+        contentView.addSubview(interactionButton)
+        
+        interactionButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor).isActive = true
+        interactionButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -10).isActive = true
+        interactionButton.heightAnchor.constraint(equalToConstant: 45).isActive = true
+        interactionButton.widthAnchor.constraint(equalToConstant: 45).isActive = true
+        movieOverviewLabel.bottomAnchor.constraint(equalTo: interactionButton.topAnchor).isActive = true
+        
+        button = interactionButton
+        button?.isSelected = true
+        setupButtonAction()
     }
     
-    func setButtonStates() {
-        isFavourite = userDefaults.bool(forKey: "favourite\(movieId)")
-        isWatched = userDefaults.bool(forKey: "watched\(movieId)")
-        favouritesButton.isSelected = self.isFavourite
-        watchedButton.isSelected = self.isWatched
+    fileprivate func setupButtonAction() {
+        self.button?.addTarget(self, action: #selector(watchedButtonTapped), for: .touchUpInside)
     }
     
     //MARK: Actions
+
     @objc func watchedButtonTapped() {
-        isWatched = !isWatched
-        watchedButton.isSelected = isWatched
-        userDefaults.setValue(isWatched, forKey: "watched\(movieId)")
-    }
-    
-    @objc func favouriteButtonTapped() {
-        isFavourite = !isFavourite
-        favouritesButton.isSelected = isFavourite
-        userDefaults.setValue(isFavourite, forKey: "favourite\(movieId)")
+        button?.isSelected = false
+        //remove from core data and from tableview
+        
+        CoreDataHelper.updateWatched(withId: movie!.id, false)
     }
 }

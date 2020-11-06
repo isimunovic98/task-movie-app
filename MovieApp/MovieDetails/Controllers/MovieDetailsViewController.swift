@@ -8,15 +8,14 @@
 import UIKit
 
 class MovieDetailsViewController: UIViewController {
-    
+
     static var response: String = "https://api.themoviedb.org/3/movie/"
     static var apiKey: String = "?api_key=aaf38b3909a4f117db3fb67e13ac6ef7&language=en-US"
     
     //MARK: Properties
-    let userDefaults = UserDefaults.standard
-    var isFavourite: Bool = false
-    var isWatched: Bool = false
     var id: Int
+    var watched = false
+    var favourite = false
     var movieDetails: MovieDetails?
     var rowItems = [RowItem<Any, Any>]()
     
@@ -65,7 +64,6 @@ class MovieDetailsViewController: UIViewController {
     init(movieId id: Int) {
         self.id = id
         super.init(nibName: nil, bundle: nil)
-        self.setButtonStates()
     }
     
     required init?(coder: NSCoder) {
@@ -87,6 +85,7 @@ extension MovieDetailsViewController {
         configureTableView()
         populateTableView()
         setupButtonActions()
+        setButtonStates()
     }
     
     fileprivate func setupConstraints() {
@@ -150,23 +149,26 @@ extension MovieDetailsViewController {
     }
     
     func setButtonStates() {
-        isFavourite = userDefaults.bool(forKey: "favourite\(id)")
-        isWatched = userDefaults.bool(forKey: "watched\(id)")
-        favouritesButton.isSelected = self.isFavourite
-        watchedButton.isSelected = self.isWatched
+        if let appMovie = MovieAppMovie.findByID( Int64(id) ) {
+            watched = appMovie.watched
+            favourite = appMovie.favourite
+            watchedButton.isSelected = watched
+            favouritesButton.isSelected = favourite
+        }
     }
     
     //MARK: Actions
     @objc func watchedButtonTapped() {
-        isWatched = !isWatched
-        watchedButton.isSelected = isWatched
-        userDefaults.setValue(isWatched, forKey: "watched\(id)")
+        watched = !watched
+        watchedButton.isSelected = watched
+        CoreDataHelper.saveOrUpdate(movieDetails!, watched, favourite)
+        
     }
     
     @objc func favouriteButtonTapped() {
-        isFavourite = !isFavourite
-        favouritesButton.isSelected = isFavourite
-        userDefaults.setValue(isFavourite, forKey: "favourite\(id)")
+        favourite = !favourite
+        favouritesButton.isSelected = favourite
+        CoreDataHelper.saveOrUpdate(movieDetails!, watched, favourite)
     }
     
     @objc func goBack() {

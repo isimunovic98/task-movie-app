@@ -47,7 +47,7 @@ class NowPlayingListViewController: UIViewController {
     }
 }
 
-//MARK: UI
+//MARK: - UI
 extension NowPlayingListViewController {
     
     override var preferredStatusBarStyle: UIStatusBarStyle {
@@ -55,7 +55,8 @@ extension NowPlayingListViewController {
     }
     
     fileprivate func setupUI() {
-        view.backgroundColor = UIColor(named: "backgroundColor")
+        setupApperance()
+        //setup TabBarConroller
         addSubviews()
         setupConstraints()
         configureTableView()
@@ -63,25 +64,29 @@ extension NowPlayingListViewController {
         fetchData(showLoader: true)
     }
     
+    fileprivate func setupApperance() {
+        view.backgroundColor = UIColor(named: "backgroundColor")
+    }
+    
+    fileprivate func addSubviews() {
+        view.addSubview(nowPlayingTableView)
+        view.addSubview(blurLoader)
+    }
+    
     fileprivate func setupConstraints() {
         let constraints = [
             nowPlayingTableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             nowPlayingTableView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 15),
             nowPlayingTableView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -15),
-            nowPlayingTableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+            nowPlayingTableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
         ]
         
         NSLayoutConstraint.activate(constraints)
     }
 }
 
-//MARK: Methods
+//MARK: - Methods
 extension NowPlayingListViewController {
-    fileprivate func addSubviews() {
-        view.addSubview(nowPlayingTableView)
-        view.addSubview(blurLoader)
-    }
-    
     fileprivate func configureRefreshControl() {
         nowPlayingTableView.addSubview(refreshControl)
         refreshControl.addTarget(self, action: #selector(refresh), for: .valueChanged)
@@ -93,7 +98,7 @@ extension NowPlayingListViewController {
 }
 
 
-//MARK: TableViewDelegate
+//MARK: - TableViewDelegate
 extension NowPlayingListViewController: UITableViewDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -146,7 +151,7 @@ extension NowPlayingListViewController: UITableViewDelegate, UITableViewDataSour
     }
 }
 
-//MARK: JSON Decoder
+//MARK: - JSON Decoder
 extension NowPlayingListViewController {
     func fetchData(showLoader: Bool) {
         
