@@ -1,13 +1,12 @@
 //
-//  WatchedListViewController.swift
+//  FavouriteListViewController.swift
 //  MovieApp
 //
-//  Created by Ivan Simunovic on 05/11/2020.
+//  Created by Ivan Simunovic on 09/11/2020.
 //
-
 import UIKit
 
-class WatchedListViewController: UIViewController, ReusableView {
+class FavouriteListViewController: UIViewController, ReusableView {
     
     //MARK: Properties
     let coreDataHelper = CoreDataHelper()
@@ -33,7 +32,7 @@ class WatchedListViewController: UIViewController, ReusableView {
 }
 
 //MARK: - UI
-extension WatchedListViewController {
+extension FavouriteListViewController {
     
     override var preferredStatusBarStyle: UIStatusBarStyle {
         return .lightContent
@@ -64,14 +63,14 @@ extension WatchedListViewController {
 }
 
 //MARK: - TableViewDelegate
-extension WatchedListViewController: UITableViewDelegate, UITableViewDataSource {
+extension FavouriteListViewController: UITableViewDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell: WatchedFavouriteCell = tableView.dequeue(for: indexPath)
         
         let movie = movies[indexPath.section]
         
-        cell.configure(withMovie: movie, forType: WatchedListViewController.reuseIdentifier)
+        cell.configure(withMovie: movie, forType: FavouriteListViewController.reuseIdentifier)
         return cell
     }
     
@@ -117,10 +116,11 @@ extension WatchedListViewController: UITableViewDelegate, UITableViewDataSource 
     }
 }
 
-extension WatchedListViewController {
+extension FavouriteListViewController {
     func fetchData() {
-        self.movies = CoreDataHelper.fetchWatchedMovies()
+        self.movies = CoreDataHelper.fetchFavouriteMovies()
         
         watchedMoviesTableView.reloadData()
     }
 }
+

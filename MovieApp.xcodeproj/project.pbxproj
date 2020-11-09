@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		022242E72559277C0038FA41 /* FavouriteListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 022242E62559277C0038FA41 /* FavouriteListViewController.swift */; };
 		022DE9392553FC01004B902C /* CoreDataHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 022DE9382553FC01004B902C /* CoreDataHelper.swift */; };
 		022DE93F25544652004B902C /* MovieAppMovie+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 022DE93D25544652004B902C /* MovieAppMovie+CoreDataClass.swift */; };
 		022DE94025544652004B902C /* MovieAppMovie+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 022DE93E25544652004B902C /* MovieAppMovie+CoreDataProperties.swift */; };
@@ -43,6 +44,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		022242E62559277C0038FA41 /* FavouriteListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavouriteListViewController.swift; sourceTree = "<group>"; };
 		022DE9382553FC01004B902C /* CoreDataHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataHelper.swift; sourceTree = "<group>"; };
 		022DE93D25544652004B902C /* MovieAppMovie+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MovieAppMovie+CoreDataClass.swift"; sourceTree = "<group>"; };
 		022DE93E25544652004B902C /* MovieAppMovie+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MovieAppMovie+CoreDataProperties.swift"; sourceTree = "<group>"; };
@@ -91,6 +93,22 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		022242DE2559238C0038FA41 /* FavouriteMoviesList */ = {
+			isa = PBXGroup;
+			children = (
+				022242DF255923AE0038FA41 /* Controllers */,
+			);
+			path = FavouriteMoviesList;
+			sourceTree = "<group>";
+		};
+		022242DF255923AE0038FA41 /* Controllers */ = {
+			isa = PBXGroup;
+			children = (
+				022242E62559277C0038FA41 /* FavouriteListViewController.swift */,
+			);
+			path = Controllers;
+			sourceTree = "<group>";
+		};
 		022DE9372553FBEB004B902C /* CoreData */ = {
 			isa = PBXGroup;
 			children = (
@@ -103,6 +121,7 @@
 			isa = PBXGroup;
 			children = (
 				022DE94925545865004B902C /* CustomCells */,
+				022242DE2559238C0038FA41 /* FavouriteMoviesList */,
 				022DE94825545839004B902C /* WatchedMoviesList */,
 				029C62EF254C322D00947B25 /* NowPlayingList */,
 			);
@@ -389,6 +408,7 @@
 				02E2924F254C70630088E7A6 /* MovieDetailsViewController.swift in Sources */,
 				024B961C255173E10026FA0E /* BlurLoader.swift in Sources */,
 				028FA7E325503F1900942985 /* RowItem.swift in Sources */,
+				022242E72559277C0038FA41 /* FavouriteListViewController.swift in Sources */,
 				02E2924A254C64580088E7A6 /* Extensions+String.swift in Sources */,
 				028FA7F225506D7A00942985 /* Extensions+UIImageView.swift in Sources */,
 				02BBD5C8254C3F2E00058844 /* NowPlayingListViewController.swift in Sources */,
