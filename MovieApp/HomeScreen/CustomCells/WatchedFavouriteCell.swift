@@ -10,7 +10,7 @@ import UIKit
 class WatchedFavouriteCell: UITableViewCell {
     
     //MARK: Properties
-    var movie: MovieAppMovie?
+    var movie: MovieEntity?
     
     var button: UIButton?
     
@@ -79,35 +79,34 @@ extension WatchedFavouriteCell {
     }
     
     fileprivate func setupConstraints() {
+        moviePosterImageView.snp.makeConstraints({ (make) in
+            make.top.leading.bottom.equalTo(contentView)
+            make.size.equalTo(150)
+        })
         
-        let constraints = [
-            moviePosterImageView.topAnchor.constraint(equalTo: contentView.topAnchor),
-            moviePosterImageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-            moviePosterImageView.widthAnchor.constraint(equalToConstant: 150),
-            moviePosterImageView.heightAnchor.constraint(equalToConstant: 150),
-            moviePosterImageView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
-            
-            yearOfReleaseLabel.centerXAnchor.constraint(equalTo: moviePosterImageView.centerXAnchor),
-            yearOfReleaseLabel.bottomAnchor.constraint(equalTo: moviePosterImageView.bottomAnchor),
-            
-            movieTitleLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 10),
-            movieTitleLabel.leadingAnchor.constraint(equalTo: moviePosterImageView.trailingAnchor, constant: 10),
-            movieTitleLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -10),
-            movieTitleLabel.bottomAnchor.constraint(equalTo: movieOverviewLabel.topAnchor),
-            
-            movieOverviewLabel.topAnchor.constraint(equalTo: movieTitleLabel.bottomAnchor, constant: 5),
-            movieOverviewLabel.leadingAnchor.constraint(equalTo: movieTitleLabel.leadingAnchor),
-            movieOverviewLabel.trailingAnchor.constraint(equalTo: movieTitleLabel.trailingAnchor)
-        ]
+        yearOfReleaseLabel.snp.makeConstraints { (make) in
+            make.bottom.equalTo(moviePosterImageView)
+            make.centerX.equalTo(moviePosterImageView)
+        }
         
-        NSLayoutConstraint.activate(constraints)
+        movieTitleLabel.snp.makeConstraints { (make) in
+            make.top.trailing.equalTo(contentView).inset(10)
+            make.leading.equalTo(moviePosterImageView.snp.trailing).offset(10)
+            make.bottom.equalTo(movieOverviewLabel.snp.top)
+        }
+        
+        movieOverviewLabel.snp.makeConstraints { (make) in
+            make.top.equalTo(movieTitleLabel.snp.bottom).offset(5)
+            make.leading.trailing.equalTo(movieTitleLabel)
+        }
+        
     }
 }
 
 //MARK: - Methods
 extension WatchedFavouriteCell {
     
-    func configure(withMovie movie: MovieAppMovie, forType type: String) {
+    func configure(withMovie movie: MovieEntity, forType type: String) {
         self.movie = movie
         moviePosterImageView.setImageFromUrl(from: NowPlayingCell.posterPath + movie.posterPath!)
         yearOfReleaseLabel.text = movie.releaseDate?.extractYear
@@ -142,6 +141,7 @@ extension WatchedFavouriteCell {
     }
 }
 
+//MARK - Button Logic
 extension WatchedFavouriteCell {
     
     fileprivate func getWatchedListButton() -> WatchedCustomButton {
@@ -175,10 +175,11 @@ extension WatchedFavouriteCell {
     }
     
     fileprivate func setButtonConstraints(_ button: UIButton) {
-        button.bottomAnchor.constraint(equalTo: contentView.bottomAnchor).isActive = true
-        button.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -10).isActive = true
-        button.heightAnchor.constraint(equalToConstant: 45).isActive = true
-        button.widthAnchor.constraint(equalToConstant: 45).isActive = true
+        button.snp.makeConstraints { (make) in
+            make.bottom.equalTo(contentView)
+            make.trailing.equalTo(contentView).offset(-10)
+            make.height.width.equalTo(45)
+        }
         movieOverviewLabel.bottomAnchor.constraint(equalTo: button.topAnchor).isActive = true
     }
 }

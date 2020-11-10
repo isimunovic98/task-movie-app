@@ -10,9 +10,7 @@ import UIKit
 class WatchedListViewController: UIViewController, ReusableView {
     
     //MARK: Properties
-    let coreDataHelper = CoreDataHelper()
-    
-    var movies = [MovieAppMovie]()
+    var movies = [MovieEntity]()
     
     let watchedMoviesTableView: UITableView = {
         let tableView = UITableView()
@@ -22,6 +20,7 @@ class WatchedListViewController: UIViewController, ReusableView {
         return tableView
     }()
 
+    //MARK: Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
@@ -40,11 +39,15 @@ extension WatchedListViewController {
     }
     
     fileprivate func setupUI() {
-        view.backgroundColor = UIColor(named: "backgroundColor")
+        setupAppearance()
         addSubviews()
         setupConstraints()
         configureTableView()
         fetchData()
+    }
+    
+    fileprivate func setupAppearance() {
+        view.backgroundColor = UIColor(named: "backgroundColor")
     }
     
     fileprivate func addSubviews() {
@@ -52,16 +55,23 @@ extension WatchedListViewController {
     }
     
     fileprivate func setupConstraints() {
-        let constraints = [
-            watchedMoviesTableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            watchedMoviesTableView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 15),
-            watchedMoviesTableView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -15),
-            watchedMoviesTableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
-        ]
+        watchedMoviesTableView.snp.makeConstraints { (make) in
+            make.top.bottom.equalTo(self.view.safeAreaLayoutGuide)
+            make.leading.trailing.equalTo(self.view.safeAreaLayoutGuide).inset(15)
+        }
         
-        NSLayoutConstraint.activate(constraints)
     }
 }
+
+//MARK: - Methods
+extension WatchedListViewController {
+    func fetchData() {
+        self.movies = CoreDataHelper.fetchWatchedMovies()
+        
+        watchedMoviesTableView.reloadData()
+    }
+}
+
 
 //MARK: - TableViewDelegate
 extension WatchedListViewController: UITableViewDelegate, UITableViewDataSource {
@@ -114,13 +124,5 @@ extension WatchedListViewController: UITableViewDelegate, UITableViewDataSource 
     func setTableViewDelegates() {
         watchedMoviesTableView.delegate = self
         watchedMoviesTableView.dataSource = self
-    }
-}
-
-extension WatchedListViewController {
-    func fetchData() {
-        self.movies = CoreDataHelper.fetchWatchedMovies()
-        
-        watchedMoviesTableView.reloadData()
     }
 }
