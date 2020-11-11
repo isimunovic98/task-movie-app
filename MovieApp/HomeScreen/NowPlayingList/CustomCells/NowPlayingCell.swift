@@ -6,11 +6,9 @@
 //
 
 import UIKit
-import SnapKit
 
 class NowPlayingCell: UITableViewCell {
-    
-    static var posterPath: String = "https://image.tmdb.org/t/p/w500/"
+
     
     //MARK: Properties
     var movie: Movie?
@@ -136,7 +134,7 @@ extension NowPlayingCell {
 extension NowPlayingCell {
     func configure(withMovie movie: Movie) {
         self.movie = movie
-        moviePosterImageView.setImageFromUrl(from: NowPlayingCell.posterPath + movie.poster_path)
+        self.moviePosterImageView.setImageFromUrl(Constants.IMAGE_BASE_PATH + movie.poster_path)
         yearOfReleaseLabel.text = movie.release_date.extractYear
         movieTitleLabel.text = movie.title
         movieOverviewLabel.text = movie.overview

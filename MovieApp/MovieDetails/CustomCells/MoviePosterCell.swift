@@ -33,7 +33,7 @@ class MoviePosterCell: UITableViewCell {
     }
     
     func setMoviePoster(from url: String) {
-        moviePosterImageView.setImageFromUrl(from:"https://image.tmdb.org/t/p/w500/" + url)
+        self.moviePosterImageView.setImageFromUrl(Constants.IMAGE_BASE_PATH + url)
     }
     
 }

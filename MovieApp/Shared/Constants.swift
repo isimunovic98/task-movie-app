@@ -9,4 +9,6 @@ import UIKit
 
 struct Constants {
     static var CELL_SPACING: CGFloat = 15
+    
+    static var IMAGE_BASE_PATH: String = "https://image.tmdb.org/t/p/w500/"
 }

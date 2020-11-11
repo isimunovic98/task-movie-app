@@ -108,7 +108,7 @@ extension WatchedFavouriteCell {
     
     func configure(withMovie movie: MovieEntity, forType type: String) {
         self.movie = movie
-        moviePosterImageView.setImageFromUrl(from: NowPlayingCell.posterPath + movie.posterPath!)
+        self.moviePosterImageView.setImageFromUrl(Constants.IMAGE_BASE_PATH + movie.posterPath!)
         yearOfReleaseLabel.text = movie.releaseDate?.extractYear
         movieTitleLabel.text = movie.title
         movieOverviewLabel.text = movie.overview
