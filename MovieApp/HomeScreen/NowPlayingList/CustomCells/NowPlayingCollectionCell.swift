@@ -25,7 +25,7 @@ class NowPlayingCollectionCell: UICollectionViewCell {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.textColor = .systemGray3
-        label.font = label.font.withSize(25)
+        label.font = label.font.withSize(20)
         return label
     }()
     
@@ -34,6 +34,7 @@ class NowPlayingCollectionCell: UICollectionViewCell {
         label.translatesAutoresizingMaskIntoConstraints = false
         label.numberOfLines = 2
         label.textColor = .systemGray3
+        label.font = label.font.withSize(15)
         return label
     }()
     
@@ -42,6 +43,7 @@ class NowPlayingCollectionCell: UICollectionViewCell {
         label.translatesAutoresizingMaskIntoConstraints = false
         label.numberOfLines = 3
         label.textColor = .systemGray3
+        label.font = label.font.withSize(10)
         return label
     }()
     
@@ -55,6 +57,12 @@ class NowPlayingCollectionCell: UICollectionViewCell {
         let button = FavouritesCustomButton()
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
+    }()
+    
+    let gradientLayer: ShaderTopToBottom = {
+       let layer = ShaderTopToBottom()
+        layer.translatesAutoresizingMaskIntoConstraints = false
+        return layer
     }()
     
     //MARK: Init
@@ -74,17 +82,17 @@ extension NowPlayingCollectionCell {
         setupAppearance()
         addSubviewsToContentView()
         setupConstraints()
-        //setupButtonActions()
+        setupButtonActions()
     }
     
     fileprivate func setupAppearance() {
         self.backgroundColor = UIColor(named: "backgroundColor")
         contentView.backgroundColor = UIColor(named: "cellColor")
-        contentView.layer.cornerRadius = 15
     }
     
     fileprivate func addSubviewsToContentView() {
         contentView.addSubview(moviePosterImageView)
+        moviePosterImageView.addSubview(gradientLayer)
         contentView.addSubview(yearOfReleaseLabel)
         contentView.addSubview(movieTitleLabel)
         contentView.addSubview(movieOverviewLabel)
@@ -95,35 +103,40 @@ extension NowPlayingCollectionCell {
     fileprivate func setupConstraints() {
         
         moviePosterImageView.snp.makeConstraints({ (make) in
-            make.size.equalTo(contentView)
+            make.top.width.equalTo(contentView)
+            make.height.equalTo(150)
         })
-        
+    
         yearOfReleaseLabel.snp.makeConstraints { (make) in
             make.bottom.centerX.equalTo(moviePosterImageView)
         }
-//
-//        movieTitleLabel.snp.makeConstraints { (make) in
-//            make.top.trailing.equalTo(contentView).inset(10)
-//            make.leading.equalTo(moviePosterImageView.snp.trailing).offset(10)
-//            make.bottom.equalTo(movieOverviewLabel.snp.top)
-//        }
-//
-//        movieOverviewLabel.snp.makeConstraints { (make) in
-//            make.top.equalTo(movieTitleLabel.snp.bottom).offset(5)
-//            make.leading.trailing.equalTo(movieTitleLabel)
-//            make.bottom.equalTo(favouritesButton.snp.top)
-//        }
-//        favouritesButton.snp.makeConstraints { (make) in
-//            make.bottom.equalTo(contentView)
-//            make.trailing.equalTo(contentView.snp.trailing).offset(-10)
-//            make.height.width.equalTo(45)
-//        }
-//
-//        watchedButton.snp.makeConstraints { (make) in
-//            make.trailing.equalTo(favouritesButton.snp.leading)
-//            make.bottom.equalTo(contentView.snp.bottom)
-//            make.height.width.equalTo(45)
-//        }
+
+        gradientLayer.snp.makeConstraints { (make) in
+            make.top.leading.trailing.bottom.equalTo(moviePosterImageView)
+        }
+        
+        movieTitleLabel.snp.makeConstraints { (make) in
+            make.top.equalTo(moviePosterImageView.snp.bottom)
+            make.leading.trailing.equalTo(moviePosterImageView).inset(5)
+        }
+
+        movieOverviewLabel.snp.makeConstraints { (make) in
+            make.top.equalTo(movieTitleLabel.snp.bottom)
+            make.leading.trailing.equalTo(moviePosterImageView).inset(5)
+            make.bottom.equalTo(favouritesButton.snp.top)
+            
+        }
+        favouritesButton.snp.makeConstraints { (make) in
+            make.bottom.equalTo(contentView)
+            make.trailing.equalTo(contentView.snp.trailing).offset(-10)
+            make.height.width.equalTo(45)
+        }
+
+        watchedButton.snp.makeConstraints { (make) in
+            make.trailing.equalTo(favouritesButton.snp.leading)
+            make.bottom.equalTo(contentView.snp.bottom)
+            make.height.width.equalTo(45)
+        }
     }
 }
 

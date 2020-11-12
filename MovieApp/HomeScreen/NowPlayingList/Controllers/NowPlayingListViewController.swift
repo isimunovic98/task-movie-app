@@ -14,7 +14,7 @@ class NowPlayingListViewController: UIViewController {
     var movies = [Movie]()
     
     lazy var nowPlayingCollectionView: UICollectionView = {
-        let collectionView = UICollectionView(frame: self.view.frame, collectionViewLayout: collectionViewLayout())
+        let collectionView = UICollectionView(frame: self.view.frame, collectionViewLayout: UICollectionViewFlowLayout())
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         collectionView.backgroundColor = UIColor(named: "backgroundColor")
         return collectionView
@@ -41,16 +41,6 @@ class NowPlayingListViewController: UIViewController {
     
     override func viewWillAppear(_ animated: Bool) {
         nowPlayingCollectionView.reloadData()
-    }
-    
-    func collectionViewLayout() -> UICollectionViewLayout {
-        let layout = UICollectionViewFlowLayout()
-
-        layout.scrollDirection = .vertical
-        layout.minimumInteritemSpacing = 0
-        layout.minimumLineSpacing = 0
-        
-        return layout
     }
 }
 
@@ -144,13 +134,6 @@ extension NowPlayingListViewController: UICollectionViewDataSource {
         return 2
     }
     
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        let padding: CGFloat =  50
-        let collectionViewSize = collectionView.frame.size.width - padding
-        
-        return CGSize(width: collectionViewSize/2, height: collectionViewSize/2)
-    }
-    
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell: NowPlayingCollectionCell = collectionView.dequeue(for: indexPath)
         
@@ -164,5 +147,12 @@ extension NowPlayingListViewController: UICollectionViewDataSource {
 extension NowPlayingListViewController: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
         return UIEdgeInsets(top: 10,left: 10,bottom: 10,right: 10)
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        let padding: CGFloat =  30
+        let collectionViewSize = collectionView.frame.size.width - padding
+        
+        return CGSize(width: collectionViewSize/2, height: 250)
     }
 }
