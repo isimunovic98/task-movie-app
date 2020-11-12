@@ -7,19 +7,17 @@
 
 import UIKit
 
-
 class NowPlayingListViewController: UIViewController {
-    
+        
     //MARK: Properties
     let service = APIService(baseUrl: "")
     var movies = [Movie]()
     
-    let nowPlayingTableView: UITableView = {
-        let tableView = UITableView()
-        tableView.translatesAutoresizingMaskIntoConstraints = false
-        tableView.separatorStyle = .none
-        tableView.backgroundColor = UIColor(named: "backgroundColor")
-        return tableView
+    lazy var nowPlayingCollectionView: UICollectionView = {
+        let collectionView = UICollectionView(frame: self.view.frame, collectionViewLayout: collectionViewLayout())
+        collectionView.translatesAutoresizingMaskIntoConstraints = false
+        collectionView.backgroundColor = UIColor(named: "backgroundColor")
+        return collectionView
     }()
     
     let blurLoader: BlurLoader = {
@@ -39,17 +37,25 @@ class NowPlayingListViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
-        service.getAllMovies()
     }
     
     override func viewWillAppear(_ animated: Bool) {
-        nowPlayingTableView.reloadData()
+        nowPlayingCollectionView.reloadData()
+    }
+    
+    func collectionViewLayout() -> UICollectionViewLayout {
+        let layout = UICollectionViewFlowLayout()
+
+        layout.scrollDirection = .vertical
+        layout.minimumInteritemSpacing = 0
+        layout.minimumLineSpacing = 0
+        
+        return layout
     }
 }
 
 //MARK: - UI
 extension NowPlayingListViewController {
-    
     override var preferredStatusBarStyle: UIStatusBarStyle {
         return .lightContent
     }
@@ -58,7 +64,7 @@ extension NowPlayingListViewController {
         setupApperance()
         addSubviews()
         setupConstraints()
-        configureTableView()
+        configureCollectionView()
         configureRefreshControl()
         fetchData(showLoader: true)
     }
@@ -68,14 +74,14 @@ extension NowPlayingListViewController {
     }
     
     fileprivate func addSubviews() {
-        view.addSubview(nowPlayingTableView)
+        view.addSubview(nowPlayingCollectionView)
         view.addSubview(blurLoader)
     }
     
     fileprivate func setupConstraints() {
-        nowPlayingTableView.snp.makeConstraints { (make) in
+        nowPlayingCollectionView.snp.makeConstraints { (make) in
             make.top.bottom.equalTo(self.view.safeAreaLayoutGuide)
-            make.leading.trailing.equalTo(self.view.safeAreaLayoutGuide).inset(20)
+            make.leading.trailing.equalTo(self.view.safeAreaLayoutGuide)
         }
     }
 }
@@ -83,7 +89,7 @@ extension NowPlayingListViewController {
 //MARK: - Methods
 extension NowPlayingListViewController {
     fileprivate func configureRefreshControl() {
-        nowPlayingTableView.addSubview(refreshControl)
+        nowPlayingCollectionView.addSubview(refreshControl)
         refreshControl.addTarget(self, action: #selector(refresh), for: .valueChanged)
     }
     
@@ -102,64 +108,61 @@ extension NowPlayingListViewController {
                 guard let self = self else { return }
                 guard let _movies = movies else { return }
                 self.movies = _movies.results
-                self.nowPlayingTableView.reloadData()
+                self.nowPlayingCollectionView.reloadData()
                 self.view.removeBlurLoader(blurLoader: self.blurLoader)
                 self.refreshControl.endRefreshing()
             }
         }
     }
+    
+    func configureCollectionView() {
+        nowPlayingCollectionView.delegate = self
+        nowPlayingCollectionView.dataSource = self
+        
+        nowPlayingCollectionView.register(NowPlayingCollectionCell.self, forCellWithReuseIdentifier: NowPlayingCollectionCell.reuseIdentifier)
+    }
 }
 
-
-//MARK: - TableViewDelegate
-extension NowPlayingListViewController: UITableViewDelegate, UITableViewDataSource {
-    
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell: NowPlayingCell = tableView.dequeue(for: indexPath)
-        
-        let movie = movies[indexPath.section]
-        cell.configure(withMovie: movie)
-        return cell
-    }
-    
-    func numberOfSections(in tableView: UITableView) -> Int {
-        return self.movies.count
-    }
-    
-    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-        return Constants.CELL_SPACING
-    }
-    
-    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-        let headerView = UIView()
-        headerView.backgroundColor = UIColor(named: "backgroundColor")
-        return headerView
-    }
-    
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 1
-    }
-    
-    func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
-        cell.contentView.layer.masksToBounds = true
-    }
-    
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let id = movies[indexPath.section].id
+//MARK: - CollectionViewDelegate
+extension NowPlayingListViewController: UICollectionViewDelegate {
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        let id = movies[indexPath.section * 2 + indexPath.row].id
         
         let movieDetailsController = MovieDetailsViewController(movieId: id)
         
         navigationController?.pushViewController(movieDetailsController, animated: false)
     }
+}
+
+//MARK: - CollectionViewDataSource
+extension NowPlayingListViewController: UICollectionViewDataSource {
     
-    func configureTableView() {
-        setTableViewDelegates()
-        
-        nowPlayingTableView.register(NowPlayingCell.self, forCellReuseIdentifier: NowPlayingCell.reuseIdentifier)
+    func numberOfSections(in collectionView: UICollectionView) -> Int {
+        return movies.count/2
+    }
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        return 2
     }
     
-    func setTableViewDelegates() {
-        nowPlayingTableView.delegate = self
-        nowPlayingTableView.dataSource = self
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        let padding: CGFloat =  50
+        let collectionViewSize = collectionView.frame.size.width - padding
+        
+        return CGSize(width: collectionViewSize/2, height: collectionViewSize/2)
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        let cell: NowPlayingCollectionCell = collectionView.dequeue(for: indexPath)
+        
+        cell.configure(withMovie: movies[indexPath.section * 2 + indexPath.row])
+        
+        return cell
+    }
+}
+
+//MARK: - CollectionViewFlowLayout
+extension NowPlayingListViewController: UICollectionViewDelegateFlowLayout {
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
+        return UIEdgeInsets(top: 10,left: 10,bottom: 10,right: 10)
     }
 }

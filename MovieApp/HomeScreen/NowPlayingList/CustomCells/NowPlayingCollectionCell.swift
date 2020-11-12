@@ -1,14 +1,13 @@
 //
-//  NowPlayingCell.swift
+//  NowPlayingCollectionCell.swift
 //  MovieApp
 //
-//  Created by Ivan Simunovic on 30/10/2020.
+//  Created by Ivan Simunovic on 12/11/2020.
 //
 
 import UIKit
 
-class NowPlayingCell: UITableViewCell {
-
+class NowPlayingCollectionCell: UICollectionViewCell {
     
     //MARK: Properties
     var movie: Movie?
@@ -59,8 +58,8 @@ class NowPlayingCell: UITableViewCell {
     }()
     
     //MARK: Init
-    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
-        super.init(style: style, reuseIdentifier: reuseIdentifier)
+    override init(frame: CGRect) {
+        super.init(frame: frame)
         setupUI()
     }
     
@@ -70,16 +69,15 @@ class NowPlayingCell: UITableViewCell {
 }
 
 //MARK: - UI
-extension NowPlayingCell {
+extension NowPlayingCollectionCell {
     fileprivate func setupUI() {
         setupAppearance()
         addSubviewsToContentView()
         setupConstraints()
-        setupButtonActions()
+        //setupButtonActions()
     }
     
     fileprivate func setupAppearance() {
-        selectionStyle = .none
         self.backgroundColor = UIColor(named: "backgroundColor")
         contentView.backgroundColor = UIColor(named: "cellColor")
         contentView.layer.cornerRadius = 15
@@ -97,41 +95,40 @@ extension NowPlayingCell {
     fileprivate func setupConstraints() {
         
         moviePosterImageView.snp.makeConstraints({ (make) in
-            make.top.leading.bottom.equalTo(contentView)
-            make.size.equalTo(150)
+            make.size.equalTo(contentView)
         })
         
         yearOfReleaseLabel.snp.makeConstraints { (make) in
             make.bottom.centerX.equalTo(moviePosterImageView)
         }
-        
-        movieTitleLabel.snp.makeConstraints { (make) in
-            make.top.trailing.equalTo(contentView).inset(10)
-            make.leading.equalTo(moviePosterImageView.snp.trailing).offset(10)
-            make.bottom.equalTo(movieOverviewLabel.snp.top)
-        }
-        
-        movieOverviewLabel.snp.makeConstraints { (make) in
-            make.top.equalTo(movieTitleLabel.snp.bottom).offset(5)
-            make.leading.trailing.equalTo(movieTitleLabel)
-            make.bottom.equalTo(favouritesButton.snp.top)
-        }
-        favouritesButton.snp.makeConstraints { (make) in
-            make.bottom.equalTo(contentView)
-            make.trailing.equalTo(contentView.snp.trailing).offset(-10)
-            make.height.width.equalTo(45)
-        }
-        
-        watchedButton.snp.makeConstraints { (make) in
-            make.trailing.equalTo(favouritesButton.snp.leading)
-            make.bottom.equalTo(contentView.snp.bottom)
-            make.height.width.equalTo(45)
-        }
+//
+//        movieTitleLabel.snp.makeConstraints { (make) in
+//            make.top.trailing.equalTo(contentView).inset(10)
+//            make.leading.equalTo(moviePosterImageView.snp.trailing).offset(10)
+//            make.bottom.equalTo(movieOverviewLabel.snp.top)
+//        }
+//
+//        movieOverviewLabel.snp.makeConstraints { (make) in
+//            make.top.equalTo(movieTitleLabel.snp.bottom).offset(5)
+//            make.leading.trailing.equalTo(movieTitleLabel)
+//            make.bottom.equalTo(favouritesButton.snp.top)
+//        }
+//        favouritesButton.snp.makeConstraints { (make) in
+//            make.bottom.equalTo(contentView)
+//            make.trailing.equalTo(contentView.snp.trailing).offset(-10)
+//            make.height.width.equalTo(45)
+//        }
+//
+//        watchedButton.snp.makeConstraints { (make) in
+//            make.trailing.equalTo(favouritesButton.snp.leading)
+//            make.bottom.equalTo(contentView.snp.bottom)
+//            make.height.width.equalTo(45)
+//        }
     }
 }
 
 //MARK: - Methods
-extension NowPlayingCell {
+extension NowPlayingCollectionCell {
     func configure(withMovie movie: Movie) {
         self.movie = movie
         self.moviePosterImageView.setImageFromUrl(Constants.IMAGE_BASE_PATH + movie.poster_path)
@@ -171,3 +168,4 @@ extension NowPlayingCell {
         CoreDataHelper.saveOrUpdate(movie!, watched, favourite)
     }
 }
+
