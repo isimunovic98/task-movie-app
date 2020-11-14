@@ -16,7 +16,7 @@ public class MovieEntity: NSManagedObject {
         let myAppDelegate = UIApplication.shared.delegate as! AppDelegate
         let context = myAppDelegate.persistentContainer.viewContext
         let request = NSFetchRequest<NSFetchRequestResult>(entityName: "MovieEntity")
-        let idPredicate = NSPredicate(format: "id = \(movieId)", argumentArray: nil)
+        let idPredicate = NSPredicate(format: "id = \(movieId)")
         request.predicate = idPredicate
         
         var result: [AnyObject]?

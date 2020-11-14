@@ -9,33 +9,42 @@ import UIKit
 
 class BlurLoader: UIView {
 
-    var blurEffectView: UIVisualEffectView?
+    let blurEffectView: UIVisualEffectView = {
+        let visualEffectView = UIVisualEffectView(effect: UIBlurEffect(style: .dark))
+        visualEffectView.translatesAutoresizingMaskIntoConstraints = false
+
+        return visualEffectView
+    }()
 
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupView()
-        addLoader()
+        
     }
 
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+}
 
-    private func setupView() {
-        let blurEffectView = UIVisualEffectView(effect: UIBlurEffect(style: .dark))
-        blurEffectView.frame = frame
-        blurEffectView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        self.blurEffectView = blurEffectView
+extension BlurLoader {
+    fileprivate func setupView() {
         addSubview(blurEffectView)
+        setupConstraints()
+        addLoader()
     }
     
-    private func addLoader() {
-        guard let blurEffectView = blurEffectView else { return }
+    fileprivate func setupConstraints() {
+        blurEffectView.snp.makeConstraints { (make) in
+            make.edges.equalTo(self)
+        }
+    }
+    
+    fileprivate func addLoader() {
         let activityIndicator = UIActivityIndicatorView(style: .large)
         activityIndicator.frame = CGRect(x: 0, y: 0, width: 50, height: 50)
         blurEffectView.contentView.addSubview(activityIndicator)
         activityIndicator.center = blurEffectView.contentView.center
         activityIndicator.startAnimating()
     }
-
 }

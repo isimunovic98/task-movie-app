@@ -21,4 +21,12 @@ extension UIViewController {
         self.present(alert, animated: false, completion: nil)
     }
     
+    func showBlurLoader() {
+        BlurLoaderHelper.addBlurLoader(to: self.view)
+    }
+    
+    func removeBlurLoader() {
+        BlurLoaderHelper.removeBlurLoader()
+    }
 }
+

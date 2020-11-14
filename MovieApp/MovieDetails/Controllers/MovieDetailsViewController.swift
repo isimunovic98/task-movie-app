@@ -9,7 +9,7 @@ import UIKit
 import SnapKit
 
 class MovieDetailsViewController: UIViewController {
-
+    
     static var response: String = "https://api.themoviedb.org/3/movie/"
     static var apiKey: String = "?api_key=aaf38b3909a4f117db3fb67e13ac6ef7&language=en-US"
     
@@ -28,13 +28,7 @@ class MovieDetailsViewController: UIViewController {
         tableView.allowsSelection = false
         return tableView
     }()
-    
-    let blurLoader: BlurLoader = {
-        let view = BlurLoader()
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
-    }()
-    
+        
     let backButton: UIButton = {
         let button = UIButton()
         button.translatesAutoresizingMaskIntoConstraints = false
@@ -58,7 +52,6 @@ class MovieDetailsViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
-
     }
     
     //MARK: Init
@@ -111,6 +104,7 @@ extension MovieDetailsViewController {
             make.trailing.equalTo(favouritesButton.snp.leading).offset(-15)
             make.size.equalTo(45)
         }
+        
     }
 }
 
@@ -128,7 +122,7 @@ extension MovieDetailsViewController {
             DispatchQueue.main.async {
                 self.createScreenData(from: self.movieDetails!)
                 self.movieDetailsTableView.reloadData()
-                self.view.removeBlurLoader(blurLoader: self.blurLoader)
+                self.removeBlurLoader()
             }
         }
     }
@@ -256,7 +250,7 @@ extension MovieDetailsViewController {
             self.presentNilURLAlert()
             return
         }
-        view.showBlurLoader(blurLoader: blurLoader)
+        showBlurLoader()
         
         let session = URLSession.shared
         let dataTask = session.dataTask(with: url!) { (data, response, error) in
