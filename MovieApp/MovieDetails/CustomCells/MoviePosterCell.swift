@@ -16,7 +16,11 @@ class MoviePosterCell: UITableViewCell {
         return imageView
     }()
     
-
+    let gradientLayer: ShaderBottomToTop = {
+       let layer = ShaderBottomToTop()
+        layer.translatesAutoresizingMaskIntoConstraints = false
+        return layer
+    }()
     
     //MARK: Init
     override required init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -40,6 +44,7 @@ extension MoviePosterCell {
     func setupUI() {
         self.backgroundColor = UIColor(named: "cellColor")
         self.addSubview(moviePosterImageView)
+        moviePosterImageView.addSubview(gradientLayer)
         
         setupConstraints()
         
@@ -52,6 +57,11 @@ extension MoviePosterCell {
             moviePosterImageView.trailingAnchor.constraint(equalTo: trailingAnchor),
             moviePosterImageView.bottomAnchor.constraint(equalTo: bottomAnchor),
             moviePosterImageView.heightAnchor.constraint(equalToConstant: 300),
+            
+            gradientLayer.topAnchor.constraint(equalTo: moviePosterImageView.topAnchor),
+            gradientLayer.leadingAnchor.constraint(equalTo: moviePosterImageView.leadingAnchor),
+            gradientLayer.trailingAnchor.constraint(equalTo: moviePosterImageView.trailingAnchor),
+            gradientLayer.bottomAnchor.constraint(equalTo: moviePosterImageView.bottomAnchor)
         ]
         
         NSLayoutConstraint.activate(constraints)

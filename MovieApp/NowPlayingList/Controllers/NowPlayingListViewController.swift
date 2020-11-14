@@ -28,6 +28,13 @@ class NowPlayingListViewController: UIViewController {
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
+    
+    let refreshControl: UIRefreshControl = {
+        let control = UIRefreshControl()
+        control.attributedTitle = NSAttributedString(string: "loading...", attributes: [NSAttributedString.Key.foregroundColor: UIColor.white])
+        control.tintColor = .white
+        return control
+    }()
 
     //MARK: Lifecycle
     override func viewDidLoad() {
@@ -35,7 +42,6 @@ class NowPlayingListViewController: UIViewController {
         
         setupUI()
     }
-   
 }
 
 extension NowPlayingListViewController {
@@ -52,6 +58,7 @@ extension NowPlayingListViewController {
         
         configureTableView()
         setupConstraints()
+        configureRefreshControl()
         fetchData(showLoader: true)
     }
     
@@ -64,6 +71,14 @@ extension NowPlayingListViewController {
         ]
         
         NSLayoutConstraint.activate(constraints)
+    }
+    fileprivate func configureRefreshControl() {
+        nowPlayingTableView.addSubview(refreshControl)
+        refreshControl.addTarget(self, action: #selector(refresh), for: .valueChanged)
+    }
+    
+    @objc func refresh() {
+        fetchData(showLoader: false)
     }
 }
 
@@ -152,6 +167,7 @@ extension NowPlayingListViewController {
                     DispatchQueue.main.async {
                         self.nowPlayingTableView.reloadData()
                         self.view.removeBlurLoader(blurLoader: self.blurLoader)
+                        self.refreshControl.endRefreshing()
                     }
                     
                 } catch {
