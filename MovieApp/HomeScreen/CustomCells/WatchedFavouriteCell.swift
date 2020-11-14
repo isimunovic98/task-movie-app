@@ -8,10 +8,10 @@
 import UIKit
 
 class WatchedFavouriteCell: UITableViewCell {
-
+    
     //MARK: Properties
-    var movie: MovieAppMovie?
-
+    var movie: MovieEntity?
+    
     var button: UIButton?
     
     let moviePosterImageView: UIImageView = {
@@ -43,7 +43,7 @@ class WatchedFavouriteCell: UITableViewCell {
         label.textColor = .systemGray3
         return label
     }()
-
+    
     
     //MARK: Init
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -79,74 +79,107 @@ extension WatchedFavouriteCell {
     }
     
     fileprivate func setupConstraints() {
+        moviePosterImageView.snp.makeConstraints({ (make) in
+            make.top.leading.bottom.equalTo(contentView)
+            make.size.equalTo(150)
+        })
         
-        let constraints = [
-            moviePosterImageView.topAnchor.constraint(equalTo: contentView.topAnchor),
-            moviePosterImageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-            moviePosterImageView.widthAnchor.constraint(equalToConstant: 150),
-            moviePosterImageView.heightAnchor.constraint(equalToConstant: 150),
-            moviePosterImageView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
-            
-            yearOfReleaseLabel.centerXAnchor.constraint(equalTo: moviePosterImageView.centerXAnchor),
-            yearOfReleaseLabel.bottomAnchor.constraint(equalTo: moviePosterImageView.bottomAnchor),
-            
-            movieTitleLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 10),
-            movieTitleLabel.leadingAnchor.constraint(equalTo: moviePosterImageView.trailingAnchor, constant: 10),
-            movieTitleLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -10),
-            movieTitleLabel.bottomAnchor.constraint(equalTo: movieOverviewLabel.topAnchor),
-            
-            movieOverviewLabel.topAnchor.constraint(equalTo: movieTitleLabel.bottomAnchor, constant: 5),
-            movieOverviewLabel.leadingAnchor.constraint(equalTo: movieTitleLabel.leadingAnchor),
-            movieOverviewLabel.trailingAnchor.constraint(equalTo: movieTitleLabel.trailingAnchor)
-        ]
+        yearOfReleaseLabel.snp.makeConstraints { (make) in
+            make.bottom.equalTo(moviePosterImageView)
+            make.centerX.equalTo(moviePosterImageView)
+        }
         
-        NSLayoutConstraint.activate(constraints)
+        movieTitleLabel.snp.makeConstraints { (make) in
+            make.top.trailing.equalTo(contentView).inset(10)
+            make.leading.equalTo(moviePosterImageView.snp.trailing).offset(10)
+            make.bottom.equalTo(movieOverviewLabel.snp.top)
+        }
+        
+        movieOverviewLabel.snp.makeConstraints { (make) in
+            make.top.equalTo(movieTitleLabel.snp.bottom).offset(5)
+            make.leading.trailing.equalTo(movieTitleLabel)
+        }
+        
     }
 }
 
 //MARK: - Methods
 extension WatchedFavouriteCell {
     
-    func configure(withMovie movie: MovieAppMovie) {
+    func configure(withMovie movie: MovieEntity, forType type: String) {
         self.movie = movie
         moviePosterImageView.setImageFromUrl(from: NowPlayingCell.posterPath + movie.posterPath!)
         yearOfReleaseLabel.text = movie.releaseDate?.extractYear
         movieTitleLabel.text = movie.title
         movieOverviewLabel.text = movie.overview
-        setupButton()
+        setupButton(forType: type)
     }
     
-    fileprivate func setupButton() {
+    fileprivate func setupButton(forType type: String) {
+        
+        if type == WatchedListViewController.reuseIdentifier {
+            button = getWatchedListButton()
+            self.button?.addTarget(self, action: #selector(watchedButtonTapped), for: .touchUpInside)
+        } else {
+            button = getFavouriteListButton()
+            self.button?.addTarget(self, action: #selector(favouriteButtonTapped), for: .touchUpInside)
+        }
+    }
+    
+    //MARK: Actions
+    
+    @objc func watchedButtonTapped() {
+        button?.isSelected = false
+        
+        CoreDataHelper.updateWatched(withId: movie!.id, false)
+    }
+    
+    @objc func favouriteButtonTapped() {
+        button?.isSelected = false
+        
+        CoreDataHelper.updateFavourite(withId: movie!.id, false)
+    }
+}
+
+//MARK - Button Logic
+extension WatchedFavouriteCell {
+    
+    fileprivate func getWatchedListButton() -> WatchedCustomButton {
         
         let interactionButton: WatchedCustomButton = {
             let button = WatchedCustomButton()
             button.translatesAutoresizingMaskIntoConstraints = false
+            button.isSelected = true
             return button
         }()
         
         contentView.addSubview(interactionButton)
+        setButtonConstraints(interactionButton)
         
-        interactionButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor).isActive = true
-        interactionButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -10).isActive = true
-        interactionButton.heightAnchor.constraint(equalToConstant: 45).isActive = true
-        interactionButton.widthAnchor.constraint(equalToConstant: 45).isActive = true
-        movieOverviewLabel.bottomAnchor.constraint(equalTo: interactionButton.topAnchor).isActive = true
-        
-        button = interactionButton
-        button?.isSelected = true
-        setupButtonAction()
+        return interactionButton
     }
     
-    fileprivate func setupButtonAction() {
-        self.button?.addTarget(self, action: #selector(watchedButtonTapped), for: .touchUpInside)
+    fileprivate func getFavouriteListButton() -> FavouritesCustomButton {
+        
+        let interactionButton: FavouritesCustomButton = {
+            let button = FavouritesCustomButton()
+            button.translatesAutoresizingMaskIntoConstraints = false
+            button.isSelected = true
+            return button
+        }()
+        
+        contentView.addSubview(interactionButton)
+        setButtonConstraints(interactionButton)
+        
+        return interactionButton
     }
     
-    //MARK: Actions
-
-    @objc func watchedButtonTapped() {
-        button?.isSelected = false
-        //remove from core data and from tableview
-        
-        CoreDataHelper.updateWatched(withId: movie!.id, false)
+    fileprivate func setButtonConstraints(_ button: UIButton) {
+        button.snp.makeConstraints { (make) in
+            make.bottom.equalTo(contentView)
+            make.trailing.equalTo(contentView).offset(-10)
+            make.height.width.equalTo(45)
+        }
+        movieOverviewLabel.bottomAnchor.constraint(equalTo: button.topAnchor).isActive = true
     }
 }

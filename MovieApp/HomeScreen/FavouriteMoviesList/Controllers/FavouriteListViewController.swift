@@ -1,18 +1,19 @@
 //
-//  WatchedListViewController.swift
+//  FavouriteListViewController.swift
 //  MovieApp
 //
-//  Created by Ivan Simunovic on 05/11/2020.
+//  Created by Ivan Simunovic on 09/11/2020.
 //
-
 import UIKit
 
-class WatchedListViewController: UIViewController, ReusableView {
+class FavouriteListViewController: UIViewController, ReusableView {
     
     //MARK: Properties
+    let coreDataHelper = CoreDataHelper()
+    
     var movies = [MovieEntity]()
     
-    let watchedMoviesTableView: UITableView = {
+    let favouriteMoviesTableView: UITableView = {
         let tableView = UITableView()
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.separatorStyle = .none
@@ -32,7 +33,7 @@ class WatchedListViewController: UIViewController, ReusableView {
 }
 
 //MARK: - UI
-extension WatchedListViewController {
+extension FavouriteListViewController {
     
     override var preferredStatusBarStyle: UIStatusBarStyle {
         return .lightContent
@@ -51,11 +52,11 @@ extension WatchedListViewController {
     }
     
     fileprivate func addSubviews() {
-        view.addSubview(watchedMoviesTableView)
+        view.addSubview(favouriteMoviesTableView)
     }
     
     fileprivate func setupConstraints() {
-        watchedMoviesTableView.snp.makeConstraints { (make) in
+        favouriteMoviesTableView.snp.makeConstraints { (make) in
             make.top.bottom.equalTo(self.view.safeAreaLayoutGuide)
             make.leading.trailing.equalTo(self.view.safeAreaLayoutGuide).inset(15)
         }
@@ -64,24 +65,23 @@ extension WatchedListViewController {
 }
 
 //MARK: - Methods
-extension WatchedListViewController {
+extension FavouriteListViewController {
     func fetchData() {
-        self.movies = CoreDataHelper.fetchWatchedMovies()
+        self.movies = CoreDataHelper.fetchFavouriteMovies()
         
-        watchedMoviesTableView.reloadData()
+        favouriteMoviesTableView.reloadData()
     }
 }
 
-
 //MARK: - TableViewDelegate
-extension WatchedListViewController: UITableViewDelegate, UITableViewDataSource {
+extension FavouriteListViewController: UITableViewDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell: WatchedFavouriteCell = tableView.dequeue(for: indexPath)
         
         let movie = movies[indexPath.section]
         
-        cell.configure(withMovie: movie, forType: WatchedListViewController.reuseIdentifier)
+        cell.configure(withMovie: movie, forType: FavouriteListViewController.reuseIdentifier)
         return cell
     }
     
@@ -118,11 +118,11 @@ extension WatchedListViewController: UITableViewDelegate, UITableViewDataSource 
     func configureTableView() {
         setTableViewDelegates()
         
-        watchedMoviesTableView.register(WatchedFavouriteCell.self, forCellReuseIdentifier: WatchedFavouriteCell.reuseIdentifier)
+        favouriteMoviesTableView.register(WatchedFavouriteCell.self, forCellReuseIdentifier: WatchedFavouriteCell.reuseIdentifier)
     }
     
     func setTableViewDelegates() {
-        watchedMoviesTableView.delegate = self
-        watchedMoviesTableView.dataSource = self
+        favouriteMoviesTableView.delegate = self
+        favouriteMoviesTableView.dataSource = self
     }
 }

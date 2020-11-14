@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import SnapKit
 
 class NowPlayingCell: UITableViewCell {
     
@@ -97,38 +98,37 @@ extension NowPlayingCell {
     
     fileprivate func setupConstraints() {
         
-        let constraints = [
-            moviePosterImageView.topAnchor.constraint(equalTo: contentView.topAnchor),
-            moviePosterImageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-            moviePosterImageView.widthAnchor.constraint(equalToConstant: 150),
-            moviePosterImageView.heightAnchor.constraint(equalToConstant: 150),
-            moviePosterImageView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
-            
-            yearOfReleaseLabel.centerXAnchor.constraint(equalTo: moviePosterImageView.centerXAnchor),
-            yearOfReleaseLabel.bottomAnchor.constraint(equalTo: moviePosterImageView.bottomAnchor),
-            
-            movieTitleLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 10),
-            movieTitleLabel.leadingAnchor.constraint(equalTo: moviePosterImageView.trailingAnchor, constant: 10),
-            movieTitleLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -10),
-            movieTitleLabel.bottomAnchor.constraint(equalTo: movieOverviewLabel.topAnchor),
-            
-            movieOverviewLabel.topAnchor.constraint(equalTo: movieTitleLabel.bottomAnchor, constant: 5),
-            movieOverviewLabel.leadingAnchor.constraint(equalTo: movieTitleLabel.leadingAnchor),
-            movieOverviewLabel.trailingAnchor.constraint(equalTo: movieTitleLabel.trailingAnchor),
-            movieOverviewLabel.bottomAnchor.constraint(equalTo: favouritesButton.topAnchor),
-            
-            favouritesButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
-            favouritesButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -10),
-            favouritesButton.heightAnchor.constraint(equalToConstant: 45),
-            favouritesButton.widthAnchor.constraint(equalToConstant: 45),
-            
-            watchedButton.trailingAnchor.constraint(equalTo: favouritesButton.leadingAnchor),
-            watchedButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
-            watchedButton.heightAnchor.constraint(equalToConstant: 45),
-            watchedButton.widthAnchor.constraint(equalToConstant: 45)
-        ]
+        moviePosterImageView.snp.makeConstraints({ (make) in
+            make.top.leading.bottom.equalTo(contentView)
+            make.size.equalTo(150)
+        })
         
-        NSLayoutConstraint.activate(constraints)
+        yearOfReleaseLabel.snp.makeConstraints { (make) in
+            make.bottom.centerX.equalTo(moviePosterImageView)
+        }
+        
+        movieTitleLabel.snp.makeConstraints { (make) in
+            make.top.trailing.equalTo(contentView).inset(10)
+            make.leading.equalTo(moviePosterImageView.snp.trailing).offset(10)
+            make.bottom.equalTo(movieOverviewLabel.snp.top)
+        }
+        
+        movieOverviewLabel.snp.makeConstraints { (make) in
+            make.top.equalTo(movieTitleLabel.snp.bottom).offset(5)
+            make.leading.trailing.equalTo(movieTitleLabel)
+            make.bottom.equalTo(favouritesButton.snp.top)
+        }
+        favouritesButton.snp.makeConstraints { (make) in
+            make.bottom.equalTo(contentView)
+            make.trailing.equalTo(contentView.snp.trailing).offset(-10)
+            make.height.width.equalTo(45)
+        }
+        
+        watchedButton.snp.makeConstraints { (make) in
+            make.trailing.equalTo(favouritesButton.snp.leading)
+            make.bottom.equalTo(contentView.snp.bottom)
+            make.height.width.equalTo(45)
+        }
     }
 }
 
@@ -149,7 +149,7 @@ extension NowPlayingCell {
     }
     
     func setButtonStates() {
-        if let movie = MovieAppMovie.findByID(Int64(movie!.id)) {
+        if let movie = MovieEntity.findByID(Int64(movie!.id)) {
             watched = movie.watched
             favourite = movie.favourite
             watchedButton.isSelected = watched

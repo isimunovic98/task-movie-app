@@ -1,26 +1,26 @@
 //
-//  MovieAppMovie+CoreDataClass.swift
-//  MovieApp
+//  MovieEntity+CoreDataClass.swift
+//  
 //
-//  Created by Ivan Simunovic on 05/11/2020.
+//  Created by Ivan Simunovic on 10/11/2020.
 //
 //
 
 import UIKit
 import CoreData
 
-@objc(MovieAppMovie)
-public class MovieAppMovie: NSManagedObject {
-    
-    class func findByID(_ movieId: Int64) -> MovieAppMovie? {
+@objc(MovieEntity)
+public class MovieEntity: NSManagedObject {
+
+    class func findByID(_ movieId: Int64) -> MovieEntity? {
         let myAppDelegate = UIApplication.shared.delegate as! AppDelegate
         let context = myAppDelegate.persistentContainer.viewContext
-        let request = NSFetchRequest<NSFetchRequestResult>(entityName: "MovieAppMovie")
+        let request = NSFetchRequest<NSFetchRequestResult>(entityName: "MovieEntity")
         let idPredicate = NSPredicate(format: "id = \(movieId)", argumentArray: nil)
         request.predicate = idPredicate
         
         var result: [AnyObject]?
-        var movie: MovieAppMovie? = nil
+        var movie: MovieEntity? = nil
         do {
             result = try context.fetch(request)
         } catch let error as NSError {
@@ -29,10 +29,10 @@ public class MovieAppMovie: NSManagedObject {
         }
         if result != nil {
             for resultItem : AnyObject in result! {
-                movie = resultItem as? MovieAppMovie
+                movie = resultItem as? MovieEntity
             }
         }
         return movie
     }
-    
+
 }

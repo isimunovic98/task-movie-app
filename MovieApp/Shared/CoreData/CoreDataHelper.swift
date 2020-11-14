@@ -22,8 +22,8 @@ class CoreDataHelper {
     }()
     
     //CREATE
-    static func newMovieAppMovie(_ movie: Movie) -> MovieAppMovie {
-        let newAppMovie = MovieAppMovie(context: context)
+    static func newMovieEntity(_ movie: Movie) -> MovieEntity {
+        let newAppMovie = MovieEntity(context: context)
         newAppMovie.id = Int64(movie.id)
         newAppMovie.title = movie.title
         newAppMovie.overview = movie.overview
@@ -33,8 +33,8 @@ class CoreDataHelper {
         return newAppMovie
     }
     
-    static func newMovieAppMovie(_ movie: MovieDetails) -> MovieAppMovie {
-        let newAppMovie = MovieAppMovie(context: context)
+    static func newMovieEntity(_ movie: MovieDetails) -> MovieEntity {
+        let newAppMovie = MovieEntity(context: context)
         newAppMovie.id = Int64(movie.id)
         newAppMovie.title = movie.title
         newAppMovie.overview = movie.overview
@@ -45,9 +45,9 @@ class CoreDataHelper {
     }
     
     //READ
-    static func fetchWatchedMovies() -> [MovieAppMovie] {
-        var items: [MovieAppMovie]
-        let fetchRequest = MovieAppMovie.fetchRequest() as NSFetchRequest<MovieAppMovie>
+    static func fetchWatchedMovies() -> [MovieEntity] {
+        var items: [MovieEntity]
+        let fetchRequest = MovieEntity.fetchRequest() as NSFetchRequest<MovieEntity>
         let predicate = NSPredicate(format: "watched = %d", true)
         
         fetchRequest.predicate = predicate
@@ -59,12 +59,12 @@ class CoreDataHelper {
         catch {
             
         }
-        return [MovieAppMovie]()
+        return [MovieEntity]()
     }
     
-    static func fetchFavouriteMovies() -> [MovieAppMovie] {
-        var items: [MovieAppMovie]
-        let fetchRequest = MovieAppMovie.fetchRequest() as NSFetchRequest<MovieAppMovie>
+    static func fetchFavouriteMovies() -> [MovieEntity] {
+        var items: [MovieEntity]
+        let fetchRequest = MovieEntity.fetchRequest() as NSFetchRequest<MovieEntity>
         let predicate = NSPredicate(format: "favourite = %d", true)
         
         fetchRequest.predicate = predicate
@@ -76,11 +76,11 @@ class CoreDataHelper {
         catch {
             
         }
-        return [MovieAppMovie]()
+        return [MovieEntity]()
     }
     
     //UPDATE
-    static func update(_ appMovie: MovieAppMovie,_ watched: Bool,_ favourite: Bool ){
+    static func update(_ appMovie: MovieEntity,_ watched: Bool,_ favourite: Bool ){
         appMovie.setValue(watched, forKey: "watched")
         appMovie.setValue(favourite, forKey: "favourite")
         
@@ -91,7 +91,7 @@ class CoreDataHelper {
     }
     
     static func updateWatched(withId id: Int64,_ watched: Bool) {
-        let appMovie = MovieAppMovie.findByID(Int64(id))
+        let appMovie = MovieEntity.findByID(Int64(id))
         appMovie?.setValue(watched, forKey: "watched")
         
         do { try context.save() }
@@ -101,7 +101,7 @@ class CoreDataHelper {
     }
     
     static func updateFavourite(withId id: Int64,_ favourite: Bool) {
-        let appMovie = MovieAppMovie.findByID(Int64(id))
+        let appMovie = MovieEntity.findByID(Int64(id))
         appMovie?.setValue(favourite, forKey: "favourite")
         
         do { try self.context.save() }
@@ -123,7 +123,7 @@ class CoreDataHelper {
     
     //Methods
     static func saveOrUpdate(_ movie: Movie,_ watched: Bool,_ favourite: Bool) {
-        if let appMovie = MovieAppMovie.findByID(Int64(movie.id)) {
+        if let appMovie = MovieEntity.findByID(Int64(movie.id)) {
                 update(appMovie, watched, favourite)
             do {
                 try context.save()
@@ -137,7 +137,7 @@ class CoreDataHelper {
     }
     
     static func save(_ movie: Movie,_ watched: Bool,_ favourite: Bool) {
-        let newAppMovie = newMovieAppMovie(movie)
+        let newAppMovie = newMovieEntity(movie)
         newAppMovie.watched = watched
         newAppMovie.favourite = favourite
         do {
@@ -149,7 +149,7 @@ class CoreDataHelper {
     }
     
     static func saveOrUpdate(_ movie: MovieDetails,_ watched: Bool,_ favourite: Bool) {
-        if let appMovie = MovieAppMovie.findByID(Int64(movie.id)) {
+        if let appMovie = MovieEntity.findByID(Int64(movie.id)) {
                 update(appMovie, watched, favourite)
             do {
                 try context.save()
@@ -163,7 +163,7 @@ class CoreDataHelper {
     }
     
     static func save(_ movie: MovieDetails,_ watched: Bool,_ favourite: Bool) {
-        let newAppMovie = newMovieAppMovie(movie)
+        let newAppMovie = newMovieEntity(movie)
         newAppMovie.watched = watched
         newAppMovie.favourite = favourite
         do {
