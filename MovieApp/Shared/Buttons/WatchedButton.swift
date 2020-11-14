@@ -60,5 +60,13 @@ extension WatchedButton {
     @objc func isWatched() {
         watchedButton.isSelected = !watchedButton.isSelected
     }
+    
+    func setWatched() {
+        watchedButton.isSelected = true
+    }
+    
+    func setNotWatched() {
+        watchedButton.isSelected = false
+    }
 }
 

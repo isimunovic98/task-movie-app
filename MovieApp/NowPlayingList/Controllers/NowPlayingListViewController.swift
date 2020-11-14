@@ -11,7 +11,7 @@ class NowPlayingListViewController: UIViewController {
     
     //MARK: Static Properties
     static var url: String = "https://api.themoviedb.org/3/movie/now_playing?api_key=aaf38b3909a4f117db3fb67e13ac6ef7&language=en-US&page=1"
-        
+    
     //MARK: Properties
     var movies = [Movie]()
     
@@ -35,15 +35,19 @@ class NowPlayingListViewController: UIViewController {
         control.tintColor = .white
         return control
     }()
-
+    
     //MARK: Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
-        
         setupUI()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        nowPlayingTableView.reloadData()
     }
 }
 
+//MARK: UI
 extension NowPlayingListViewController {
     
     override var preferredStatusBarStyle: UIStatusBarStyle {
@@ -52,12 +56,9 @@ extension NowPlayingListViewController {
     
     fileprivate func setupUI() {
         view.backgroundColor = UIColor(named: "backgroundColor")
-        
-        view.addSubview(nowPlayingTableView)
-        view.addSubview(blurLoader)
-        
-        configureTableView()
+        addSubviews()
         setupConstraints()
+        configureTableView()
         configureRefreshControl()
         fetchData(showLoader: true)
     }
@@ -72,6 +73,15 @@ extension NowPlayingListViewController {
         
         NSLayoutConstraint.activate(constraints)
     }
+}
+
+//MARK: Methods
+extension NowPlayingListViewController {
+    fileprivate func addSubviews() {
+        view.addSubview(nowPlayingTableView)
+        view.addSubview(blurLoader)
+    }
+    
     fileprivate func configureRefreshControl() {
         nowPlayingTableView.addSubview(refreshControl)
         refreshControl.addTarget(self, action: #selector(refresh), for: .valueChanged)
@@ -94,7 +104,6 @@ extension NowPlayingListViewController: UITableViewDelegate, UITableViewDataSour
         return cell
     }
     
-    //MARK: Sections
     func numberOfSections(in tableView: UITableView) -> Int {
         return self.movies.count
     }
@@ -117,7 +126,6 @@ extension NowPlayingListViewController: UITableViewDelegate, UITableViewDataSour
         cell.contentView.layer.masksToBounds = true
     }
     
-    //MARK: didSelectRowAt
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let id = movies[indexPath.section].id
         
@@ -138,7 +146,7 @@ extension NowPlayingListViewController: UITableViewDelegate, UITableViewDataSour
     }
 }
 
-
+//MARK: JSON Decoder
 extension NowPlayingListViewController {
     func fetchData(showLoader: Bool) {
         
