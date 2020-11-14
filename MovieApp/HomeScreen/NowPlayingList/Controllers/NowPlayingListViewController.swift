@@ -7,12 +7,11 @@
 
 import UIKit
 
+
 class NowPlayingListViewController: UIViewController {
     
-    //MARK: Static Properties
-    static var url: String = "https://api.themoviedb.org/3/movie/now_playing?api_key=aaf38b3909a4f117db3fb67e13ac6ef7&language=en-US&page=1"
-    
     //MARK: Properties
+    let service = APIService(baseUrl: "")
     var movies = [Movie]()
     
     let nowPlayingTableView: UITableView = {
@@ -40,6 +39,7 @@ class NowPlayingListViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
+        service.getAllMovies()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -47,7 +47,7 @@ class NowPlayingListViewController: UIViewController {
     }
 }
 
-//MARK: UI
+//MARK: - UI
 extension NowPlayingListViewController {
     
     override var preferredStatusBarStyle: UIStatusBarStyle {
@@ -55,7 +55,7 @@ extension NowPlayingListViewController {
     }
     
     fileprivate func setupUI() {
-        view.backgroundColor = UIColor(named: "backgroundColor")
+        setupApperance()
         addSubviews()
         setupConstraints()
         configureTableView()
@@ -63,25 +63,25 @@ extension NowPlayingListViewController {
         fetchData(showLoader: true)
     }
     
-    fileprivate func setupConstraints() {
-        let constraints = [
-            nowPlayingTableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            nowPlayingTableView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 15),
-            nowPlayingTableView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -15),
-            nowPlayingTableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
-        ]
-        
-        NSLayoutConstraint.activate(constraints)
+    fileprivate func setupApperance() {
+        view.backgroundColor = UIColor(named: "backgroundColor")
     }
-}
-
-//MARK: Methods
-extension NowPlayingListViewController {
+    
     fileprivate func addSubviews() {
         view.addSubview(nowPlayingTableView)
         view.addSubview(blurLoader)
     }
     
+    fileprivate func setupConstraints() {
+        nowPlayingTableView.snp.makeConstraints { (make) in
+            make.top.bottom.equalTo(self.view.safeAreaLayoutGuide)
+            make.leading.trailing.equalTo(self.view.safeAreaLayoutGuide).inset(20)
+        }
+    }
+}
+
+//MARK: - Methods
+extension NowPlayingListViewController {
     fileprivate func configureRefreshControl() {
         nowPlayingTableView.addSubview(refreshControl)
         refreshControl.addTarget(self, action: #selector(refresh), for: .valueChanged)
@@ -90,10 +90,28 @@ extension NowPlayingListViewController {
     @objc func refresh() {
         fetchData(showLoader: false)
     }
+    
+    func fetchData(showLoader: Bool) {
+        if showLoader {
+            view.showBlurLoader(blurLoader: blurLoader)
+        }
+        
+        service.getAllMovies()
+        service.completionHandler { [weak self] (movies, status, message) in
+            if status {
+                guard let self = self else { return }
+                guard let _movies = movies else { return }
+                self.movies = _movies.results
+                self.nowPlayingTableView.reloadData()
+                self.view.removeBlurLoader(blurLoader: self.blurLoader)
+                self.refreshControl.endRefreshing()
+            }
+        }
+    }
 }
 
 
-//MARK: TableViewDelegate
+//MARK: - TableViewDelegate
 extension NowPlayingListViewController: UITableViewDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -143,46 +161,5 @@ extension NowPlayingListViewController: UITableViewDelegate, UITableViewDataSour
     func setTableViewDelegates() {
         nowPlayingTableView.delegate = self
         nowPlayingTableView.dataSource = self
-    }
-}
-
-//MARK: JSON Decoder
-extension NowPlayingListViewController {
-    func fetchData(showLoader: Bool) {
-        
-        if showLoader {
-            view.showBlurLoader(blurLoader: blurLoader)
-        }
-        let url = URL(string: NowPlayingListViewController.url)
-        
-        guard url != nil else {
-            self.presentNilURLAlert()
-            return
-        }
-        loadDataIntoTableView(from: url!)
-    }
-    
-    func loadDataIntoTableView(from url: URL) {
-        let session = URLSession.shared
-        let dataTask = session.dataTask(with: url) { (data, response, error) in
-            
-            if error == nil && data != nil {
-                let decoder = JSONDecoder()
-                
-                do {
-                    let movies = try decoder.decode(MovieResponse.self, from: data!)
-                    self.movies = movies.results
-                    DispatchQueue.main.async {
-                        self.nowPlayingTableView.reloadData()
-                        self.view.removeBlurLoader(blurLoader: self.blurLoader)
-                        self.refreshControl.endRefreshing()
-                    }
-                    
-                } catch {
-                    self.presentJSONErrorAlert()
-                }
-            }
-        }
-        dataTask.resume()
     }
 }

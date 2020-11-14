@@ -6,16 +6,17 @@
 //
 
 import UIKit
+import SnapKit
 
 class NowPlayingCell: UITableViewCell {
     
     static var posterPath: String = "https://image.tmdb.org/t/p/w500/"
     
     //MARK: Properties
-    let userDefaults = UserDefaults.standard
-    var isFavourite: Bool = false
-    var isWatched: Bool = false
-    var movieId: Int = 0
+    var movie: Movie?
+
+    var favourite: Bool = false
+    var watched: Bool = false
     
     let moviePosterImageView: UIImageView = {
         let imageView = UIImageView()
@@ -70,16 +71,20 @@ class NowPlayingCell: UITableViewCell {
     }
 }
 
-//MARK: UI
+//MARK: - UI
 extension NowPlayingCell {
     fileprivate func setupUI() {
+        setupAppearance()
+        addSubviewsToContentView()
+        setupConstraints()
+        setupButtonActions()
+    }
+    
+    fileprivate func setupAppearance() {
         selectionStyle = .none
         self.backgroundColor = UIColor(named: "backgroundColor")
         contentView.backgroundColor = UIColor(named: "cellColor")
         contentView.layer.cornerRadius = 15
-        addSubviewsToContentView()
-        setupConstraints()
-        setupButtonActions()
     }
     
     fileprivate func addSubviewsToContentView() {
@@ -93,45 +98,44 @@ extension NowPlayingCell {
     
     fileprivate func setupConstraints() {
         
-        let constraints = [
-            moviePosterImageView.topAnchor.constraint(equalTo: contentView.topAnchor),
-            moviePosterImageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-            moviePosterImageView.widthAnchor.constraint(equalToConstant: 150),
-            moviePosterImageView.heightAnchor.constraint(equalToConstant: 150),
-            moviePosterImageView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
-            
-            yearOfReleaseLabel.centerXAnchor.constraint(equalTo: moviePosterImageView.centerXAnchor),
-            yearOfReleaseLabel.bottomAnchor.constraint(equalTo: moviePosterImageView.bottomAnchor),
-            
-            movieTitleLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 10),
-            movieTitleLabel.leadingAnchor.constraint(equalTo: moviePosterImageView.trailingAnchor, constant: 10),
-            movieTitleLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -10),
-            movieTitleLabel.bottomAnchor.constraint(equalTo: movieOverviewLabel.topAnchor),
-            
-            movieOverviewLabel.topAnchor.constraint(equalTo: movieTitleLabel.bottomAnchor, constant: 5),
-            movieOverviewLabel.leadingAnchor.constraint(equalTo: movieTitleLabel.leadingAnchor),
-            movieOverviewLabel.trailingAnchor.constraint(equalTo: movieTitleLabel.trailingAnchor),
-            movieOverviewLabel.bottomAnchor.constraint(equalTo: favouritesButton.topAnchor),
-            
-            favouritesButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
-            favouritesButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -10),
-            favouritesButton.heightAnchor.constraint(equalToConstant: 45),
-            favouritesButton.widthAnchor.constraint(equalToConstant: 45),
-            
-            watchedButton.trailingAnchor.constraint(equalTo: favouritesButton.leadingAnchor),
-            watchedButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
-            watchedButton.heightAnchor.constraint(equalToConstant: 45),
-            watchedButton.widthAnchor.constraint(equalToConstant: 45)
-        ]
+        moviePosterImageView.snp.makeConstraints({ (make) in
+            make.top.leading.bottom.equalTo(contentView)
+            make.size.equalTo(150)
+        })
         
-        NSLayoutConstraint.activate(constraints)
+        yearOfReleaseLabel.snp.makeConstraints { (make) in
+            make.bottom.centerX.equalTo(moviePosterImageView)
+        }
+        
+        movieTitleLabel.snp.makeConstraints { (make) in
+            make.top.trailing.equalTo(contentView).inset(10)
+            make.leading.equalTo(moviePosterImageView.snp.trailing).offset(10)
+            make.bottom.equalTo(movieOverviewLabel.snp.top)
+        }
+        
+        movieOverviewLabel.snp.makeConstraints { (make) in
+            make.top.equalTo(movieTitleLabel.snp.bottom).offset(5)
+            make.leading.trailing.equalTo(movieTitleLabel)
+            make.bottom.equalTo(favouritesButton.snp.top)
+        }
+        favouritesButton.snp.makeConstraints { (make) in
+            make.bottom.equalTo(contentView)
+            make.trailing.equalTo(contentView.snp.trailing).offset(-10)
+            make.height.width.equalTo(45)
+        }
+        
+        watchedButton.snp.makeConstraints { (make) in
+            make.trailing.equalTo(favouritesButton.snp.leading)
+            make.bottom.equalTo(contentView.snp.bottom)
+            make.height.width.equalTo(45)
+        }
     }
 }
 
-//MARK: Methods
+//MARK: - Methods
 extension NowPlayingCell {
     func configure(withMovie movie: Movie) {
-        movieId = movie.id
+        self.movie = movie
         moviePosterImageView.setImageFromUrl(from: NowPlayingCell.posterPath + movie.poster_path)
         yearOfReleaseLabel.text = movie.release_date.extractYear
         movieTitleLabel.text = movie.title
@@ -145,22 +149,27 @@ extension NowPlayingCell {
     }
     
     func setButtonStates() {
-        isFavourite = userDefaults.bool(forKey: "favourite\(movieId)")
-        isWatched = userDefaults.bool(forKey: "watched\(movieId)")
-        favouritesButton.isSelected = self.isFavourite
-        watchedButton.isSelected = self.isWatched
+        if let movie = MovieEntity.findByID(Int64(movie!.id)) {
+            watched = movie.watched
+            favourite = movie.favourite
+            watchedButton.isSelected = watched
+            favouritesButton.isSelected = favourite
+        } else {
+            watchedButton.isSelected = false
+            watchedButton.isSelected = false
+        }
     }
     
     //MARK: Actions
     @objc func watchedButtonTapped() {
-        isWatched = !isWatched
-        watchedButton.isSelected = isWatched
-        userDefaults.setValue(isWatched, forKey: "watched\(movieId)")
+        watched = !watched
+        watchedButton.isSelected = watched
+        CoreDataHelper.saveOrUpdate(movie!, watched, favourite)
     }
     
     @objc func favouriteButtonTapped() {
-        isFavourite = !isFavourite
-        favouritesButton.isSelected = isFavourite
-        userDefaults.setValue(isFavourite, forKey: "favourite\(movieId)")
+        favourite = !favourite
+        favouritesButton.isSelected = favourite
+        CoreDataHelper.saveOrUpdate(movie!, watched, favourite)
     }
 }
