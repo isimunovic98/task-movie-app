@@ -67,10 +67,6 @@ class MovieDetailsViewController: UIViewController {
         fatalError("init(coder:) has not been implemented")
     }
     
-    override var preferredStatusBarStyle: UIStatusBarStyle {
-        return .lightContent
-    }
-    
     func createScreenData(fromDetails details: MovieDetails) {
         rowItems.append(RowItem(content: details.poster_path , type: MovieDetailsCellTypes.poster))
         rowItems.append(RowItem(content: details.title , type: MovieDetailsCellTypes.title))
@@ -87,6 +83,11 @@ class MovieDetailsViewController: UIViewController {
 
 //MARK: UI
 extension MovieDetailsViewController {
+    
+    override var preferredStatusBarStyle: UIStatusBarStyle {
+        return .lightContent
+    }
+    
     fileprivate func setupUI() {
         view.addSubview(movieDetailsTableView)
         view.addSubview(backButton)
@@ -214,8 +215,10 @@ extension MovieDetailsViewController {
         let url = URL(string: MovieDetailsViewController.response + String(self.id) + MovieDetailsViewController.apiKey)
         
         guard url != nil else {
+            self.presentNilURLAlert()
             return
         }
+        
         view.showBlurLoader(blurLoader: blurLoader)
         
         let session = URLSession.shared
@@ -229,8 +232,8 @@ extension MovieDetailsViewController {
                     self.movieDetails = details
                     completion()
                     
-                } catch let jsonErr {
-                    print("Failed to decode json: ", jsonErr)
+                } catch {
+                    self.presentJSONErrorAlert()
                 }
             }
         }
