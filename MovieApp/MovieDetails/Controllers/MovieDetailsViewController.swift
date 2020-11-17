@@ -19,6 +19,7 @@ class MovieDetailsViewController: UIViewController {
     var favourite = false
     var movieDetails: MovieDetails?
     var rowItems = [RowItem<Any, MovieDetailsCellTypes>]()
+    let service = APIService()
     
     let movieDetailsTableView: UITableView = {
         let tableView = UITableView()
@@ -118,9 +119,12 @@ extension MovieDetailsViewController {
     }
     
     fileprivate func populateTableView() {
-        fetchData {
-            DispatchQueue.main.async {
-                self.createScreenData(from: self.movieDetails!)
+        showBlurLoader()
+        service.fetch(from: MovieDetailsViewController.response + String(self.id) + MovieDetailsViewController.apiKey, of: MovieDetails.self) { (movieDetails, status, message) in
+            if status {
+                guard let _movieDetails = movieDetails else { return }
+                self.movieDetails = _movieDetails
+                self.createScreenData(from: _movieDetails)
                 self.movieDetailsTableView.reloadData()
                 self.removeBlurLoader()
             }
@@ -239,35 +243,4 @@ extension MovieDetailsViewController: UITableViewDelegate, UITableViewDataSource
     }
     
     
-}
-
-//MARK: - JSON Decoder
-extension MovieDetailsViewController {
-    func fetchData(completion: @escaping ()->()) {
-        let url = URL(string: MovieDetailsViewController.response + String(self.id) + MovieDetailsViewController.apiKey)
-        
-        guard url != nil else {
-            self.presentNilURLAlert()
-            return
-        }
-        showBlurLoader()
-        
-        let session = URLSession.shared
-        let dataTask = session.dataTask(with: url!) { (data, response, error) in
-            
-            if error == nil && data != nil {
-                let decoder = JSONDecoder()
-                
-                do {
-                    let details = try decoder.decode(MovieDetails.self, from: data!)
-                    self.movieDetails = details
-                    completion()
-                    
-                } catch {
-                    self.presentJSONErrorAlert()
-                }
-            }
-        }
-        dataTask.resume()
-    }
 }

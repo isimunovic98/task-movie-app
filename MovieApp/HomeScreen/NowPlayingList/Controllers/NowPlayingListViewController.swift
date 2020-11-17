@@ -84,8 +84,7 @@ extension NowPlayingListViewController {
         if showLoader {
             showBlurLoader()
         }
-        
-        service.getAllMovies() { (movies, status, message) in
+        service.fetch(from: Constants.ALL_MOVIES_URL, of: Movies.self) { (movies, status, message) in
             if status {
                 guard let _movies = movies else { return }
                 self.movies = _movies.results
@@ -93,10 +92,7 @@ extension NowPlayingListViewController {
                 self.removeBlurLoader()
                 self.refreshControl.endRefreshing()
             }
-
-            
         }
-
     }
     
     func configureCollectionView() {
