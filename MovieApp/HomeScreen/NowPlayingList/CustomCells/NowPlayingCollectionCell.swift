@@ -88,6 +88,7 @@ extension NowPlayingCollectionCell {
     fileprivate func setupAppearance() {
         self.backgroundColor = UIColor(named: "backgroundColor")
         contentView.backgroundColor = UIColor(named: "cellColor")
+        contentView.layer.cornerRadius = 15
     }
     
     fileprivate func addSubviewsToContentView() {
