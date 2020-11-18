@@ -63,8 +63,7 @@ extension NowPlayingListViewController {
     
     fileprivate func setupConstraints() {
         nowPlayingCollectionView.snp.makeConstraints { (make) in
-            make.top.bottom.equalTo(self.view.safeAreaLayoutGuide)
-            make.leading.trailing.equalTo(self.view.safeAreaLayoutGuide)
+            make.top.leading.trailing.bottom.equalTo(self.view.safeAreaLayoutGuide)
         }
     }
 }
@@ -106,7 +105,7 @@ extension NowPlayingListViewController {
 //MARK: - CollectionViewDelegate
 extension NowPlayingListViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        let id = movies[indexPath.section * 2 + indexPath.row].id
+        let id = movies[indexPath.row].id
         
         let movieDetailsController = MovieDetailsViewController(movieId: id)
         
@@ -116,18 +115,14 @@ extension NowPlayingListViewController: UICollectionViewDelegate {
 
 //MARK: - CollectionViewDataSource
 extension NowPlayingListViewController: UICollectionViewDataSource {
-    
-    func numberOfSections(in collectionView: UICollectionView) -> Int {
-        return movies.count/2
-    }
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return 2
+        return movies.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell: NowPlayingCollectionCell = collectionView.dequeue(for: indexPath)
-        
-        cell.configure(withMovie: movies[indexPath.section * 2 + indexPath.row])
+    
+        cell.configure(withMovie: movies[indexPath.row])
         
         return cell
     }
