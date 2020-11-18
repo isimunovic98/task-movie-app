@@ -10,7 +10,7 @@ import UIKit
 class NowPlayingListViewController: UIViewController {
         
     //MARK: Properties
-    let service = APIService(baseUrl: "")
+    let service = APIService()
     var movies = [Movie]()
     
     lazy var nowPlayingCollectionView: UICollectionView = {
@@ -18,12 +18,6 @@ class NowPlayingListViewController: UIViewController {
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         collectionView.backgroundColor = UIColor(named: "backgroundColor")
         return collectionView
-    }()
-    
-    let blurLoader: BlurLoader = {
-        let view = BlurLoader()
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
     }()
     
     let refreshControl: UIRefreshControl = {
@@ -65,7 +59,6 @@ extension NowPlayingListViewController {
     
     fileprivate func addSubviews() {
         view.addSubview(nowPlayingCollectionView)
-        view.addSubview(blurLoader)
     }
     
     fileprivate func setupConstraints() {
@@ -79,7 +72,7 @@ extension NowPlayingListViewController {
 //MARK: - Methods
 extension NowPlayingListViewController {
     fileprivate func configureRefreshControl() {
-        nowPlayingCollectionView.addSubview(refreshControl)
+        nowPlayingCollectionView.refreshControl = refreshControl
         refreshControl.addTarget(self, action: #selector(refresh), for: .valueChanged)
     }
     
@@ -89,17 +82,14 @@ extension NowPlayingListViewController {
     
     func fetchData(showLoader: Bool) {
         if showLoader {
-            view.showBlurLoader(blurLoader: blurLoader)
+            showBlurLoader()
         }
-        
-        service.getAllMovies()
-        service.completionHandler { [weak self] (movies, status, message) in
+        service.fetch(from: Constants.ALL_MOVIES_URL, of: Movies.self) { (movies, status, message) in
             if status {
-                guard let self = self else { return }
                 guard let _movies = movies else { return }
                 self.movies = _movies.results
                 self.nowPlayingCollectionView.reloadData()
-                self.view.removeBlurLoader(blurLoader: self.blurLoader)
+                self.removeBlurLoader()
                 self.refreshControl.endRefreshing()
             }
         }

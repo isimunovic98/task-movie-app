@@ -57,8 +57,7 @@ extension FavouriteListViewController {
     
     fileprivate func setupConstraints() {
         favouriteMoviesTableView.snp.makeConstraints { (make) in
-            make.top.bottom.equalTo(self.view.safeAreaLayoutGuide)
-            make.leading.trailing.equalTo(self.view.safeAreaLayoutGuide).inset(15)
+            make.edges.equalTo(view.safeAreaLayoutGuide).inset(UIEdgeInsets(top: 0, left: 15, bottom: 0, right: 15))
         }
         
     }

@@ -9,7 +9,7 @@ import UIKit
 import SnapKit
 
 class MovieDetailsViewController: UIViewController {
-
+    
     static var response: String = "https://api.themoviedb.org/3/movie/"
     static var apiKey: String = "?api_key=aaf38b3909a4f117db3fb67e13ac6ef7&language=en-US"
     
@@ -19,6 +19,7 @@ class MovieDetailsViewController: UIViewController {
     var favourite = false
     var movieDetails: MovieDetails?
     var rowItems = [RowItem<Any, MovieDetailsCellTypes>]()
+    let service = APIService()
     
     let movieDetailsTableView: UITableView = {
         let tableView = UITableView()
@@ -28,13 +29,7 @@ class MovieDetailsViewController: UIViewController {
         tableView.allowsSelection = false
         return tableView
     }()
-    
-    let blurLoader: BlurLoader = {
-        let view = BlurLoader()
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
-    }()
-    
+        
     let backButton: UIButton = {
         let button = UIButton()
         button.translatesAutoresizingMaskIntoConstraints = false
@@ -58,7 +53,6 @@ class MovieDetailsViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
-
     }
     
     //MARK: Init
@@ -111,6 +105,7 @@ extension MovieDetailsViewController {
             make.trailing.equalTo(favouritesButton.snp.leading).offset(-15)
             make.size.equalTo(45)
         }
+        
     }
 }
 
@@ -124,11 +119,14 @@ extension MovieDetailsViewController {
     }
     
     fileprivate func populateTableView() {
-        fetchData {
-            DispatchQueue.main.async {
-                self.createScreenData(from: self.movieDetails!)
+        showBlurLoader()
+        service.fetch(from: MovieDetailsViewController.response + String(self.id) + MovieDetailsViewController.apiKey, of: MovieDetails.self) { (movieDetails, status, message) in
+            if status {
+                guard let _movieDetails = movieDetails else { return }
+                self.movieDetails = _movieDetails
+                self.createScreenData(from: _movieDetails)
                 self.movieDetailsTableView.reloadData()
-                self.view.removeBlurLoader(blurLoader: self.blurLoader)
+                self.removeBlurLoader()
             }
         }
     }
@@ -245,35 +243,4 @@ extension MovieDetailsViewController: UITableViewDelegate, UITableViewDataSource
     }
     
     
-}
-
-//MARK: - JSON Decoder
-extension MovieDetailsViewController {
-    func fetchData(completion: @escaping ()->()) {
-        let url = URL(string: MovieDetailsViewController.response + String(self.id) + MovieDetailsViewController.apiKey)
-        
-        guard url != nil else {
-            self.presentNilURLAlert()
-            return
-        }
-        view.showBlurLoader(blurLoader: blurLoader)
-        
-        let session = URLSession.shared
-        let dataTask = session.dataTask(with: url!) { (data, response, error) in
-            
-            if error == nil && data != nil {
-                let decoder = JSONDecoder()
-                
-                do {
-                    let details = try decoder.decode(MovieDetails.self, from: data!)
-                    self.movieDetails = details
-                    completion()
-                    
-                } catch {
-                    self.presentJSONErrorAlert()
-                }
-            }
-        }
-        dataTask.resume()
-    }
 }
