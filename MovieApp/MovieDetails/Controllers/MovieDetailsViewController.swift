@@ -29,7 +29,7 @@ class MovieDetailsViewController: UIViewController {
         tableView.allowsSelection = false
         return tableView
     }()
-        
+    
     let backButton: UIButton = {
         let button = UIButton()
         button.translatesAutoresizingMaskIntoConstraints = false
@@ -64,7 +64,7 @@ class MovieDetailsViewController: UIViewController {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-
+    
 }
 
 //MARK: - UI
@@ -120,14 +120,12 @@ extension MovieDetailsViewController {
     
     fileprivate func populateTableView() {
         showBlurLoader()
-        service.fetch(from: MovieDetailsViewController.response + String(self.id) + MovieDetailsViewController.apiKey, of: MovieDetails.self) { (movieDetails, status, message) in
-            if status {
-                guard let _movieDetails = movieDetails else { return }
-                self.movieDetails = _movieDetails
-                self.createScreenData(from: _movieDetails)
-                self.movieDetailsTableView.reloadData()
-                self.removeBlurLoader()
-            }
+        APIService.fetch(from: MovieDetailsViewController.response + String(self.id) + MovieDetailsViewController.apiKey, of: MovieDetails.self) { (movieDetails, message) in
+            guard let _movieDetails = movieDetails else { return }
+            self.movieDetails = _movieDetails
+            self.createScreenData(from: _movieDetails)
+            self.movieDetailsTableView.reloadData()
+            self.removeBlurLoader()
         }
     }
     

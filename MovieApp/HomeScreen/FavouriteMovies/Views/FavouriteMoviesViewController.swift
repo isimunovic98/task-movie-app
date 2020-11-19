@@ -1,18 +1,19 @@
 //
-//  WatchedListViewController.swift
+//  FavouriteListViewController.swift
 //  MovieApp
 //
-//  Created by Ivan Simunovic on 05/11/2020.
+//  Created by Ivan Simunovic on 09/11/2020.
 //
-
 import UIKit
 
-class WatchedListViewController: UIViewController, ReusableView {
+class FavouriteMoviesViewController: UIViewController, ReusableView {
     
     //MARK: Properties
+    var presenter: WatchedAndFavouritesPresenter?
+    
     var movies = [MovieEntity]()
     
-    let watchedMoviesTableView: UITableView = {
+    let tableView: UITableView = {
         let tableView = UITableView()
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.separatorStyle = .none
@@ -24,15 +25,21 @@ class WatchedListViewController: UIViewController, ReusableView {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
+        presenter?.onViewDidLoad()
     }
     
     override func viewWillAppear(_ animated: Bool) {
-        fetchData()
+        super.viewWillAppear(animated)
+        presenter?.onViewWillAppear()
+    }
+    
+    func setPresenter(_ presenter: WatchedAndFavouritesPresenter) {
+        self.presenter = presenter
     }
 }
 
 //MARK: - UI
-extension WatchedListViewController {
+extension FavouriteMoviesViewController {
     
     override var preferredStatusBarStyle: UIStatusBarStyle {
         return .lightContent
@@ -43,7 +50,6 @@ extension WatchedListViewController {
         addSubviews()
         setupConstraints()
         configureTableView()
-        fetchData()
     }
     
     fileprivate func setupAppearance() {
@@ -51,37 +57,33 @@ extension WatchedListViewController {
     }
     
     fileprivate func addSubviews() {
-        view.addSubview(watchedMoviesTableView)
+        view.addSubview(tableView)
     }
     
     fileprivate func setupConstraints() {
-        watchedMoviesTableView.snp.makeConstraints { (make) in
-            make.top.bottom.equalTo(self.view.safeAreaLayoutGuide)
-            make.leading.trailing.equalTo(self.view.safeAreaLayoutGuide).inset(15)
+        tableView.snp.makeConstraints { (make) in
+            make.edges.equalTo(view.safeAreaLayoutGuide).inset(UIEdgeInsets(top: 0, left: 15, bottom: 0, right: 15))
         }
         
     }
 }
 
-//MARK: - Methods
-extension WatchedListViewController {
-    func fetchData() {
-        self.movies = CoreDataHelper.fetchWatchedMovies()
-        
-        watchedMoviesTableView.reloadData()
+extension FavouriteMoviesViewController: WatchedAndFavouritesProtocol {
+    func setMovies(_ movies: [MovieEntity]) {
+        self.movies = movies
+        tableView.reloadData()
     }
 }
 
-
 //MARK: - TableViewDelegate
-extension WatchedListViewController: UITableViewDelegate, UITableViewDataSource {
+extension FavouriteMoviesViewController: UITableViewDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell: WatchedFavouriteCell = tableView.dequeue(for: indexPath)
         
         let movie = movies[indexPath.section]
         
-        cell.configure(withMovie: movie, forType: WatchedListViewController.reuseIdentifier)
+        cell.configure(withMovie: movie, ofType: FavouriteMoviesViewController.reuseIdentifier)
         return cell
     }
     
@@ -118,11 +120,11 @@ extension WatchedListViewController: UITableViewDelegate, UITableViewDataSource 
     func configureTableView() {
         setTableViewDelegates()
         
-        watchedMoviesTableView.register(WatchedFavouriteCell.self, forCellReuseIdentifier: WatchedFavouriteCell.reuseIdentifier)
+        tableView.register(WatchedFavouriteCell.self, forCellReuseIdentifier: WatchedFavouriteCell.reuseIdentifier)
     }
     
     func setTableViewDelegates() {
-        watchedMoviesTableView.delegate = self
-        watchedMoviesTableView.dataSource = self
+        tableView.delegate = self
+        tableView.dataSource = self
     }
 }

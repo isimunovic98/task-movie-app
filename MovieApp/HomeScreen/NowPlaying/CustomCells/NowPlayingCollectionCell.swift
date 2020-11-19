@@ -113,7 +113,7 @@ extension NowPlayingCollectionCell {
         }
 
         gradientLayer.snp.makeConstraints { (make) in
-            make.top.leading.trailing.bottom.equalTo(moviePosterImageView)
+            make.edges.equalTo(moviePosterImageView)
         }
         
         movieTitleLabel.snp.makeConstraints { (make) in

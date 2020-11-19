@@ -15,13 +15,19 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
     
-        let nowPlayingVC = NowPlayingListViewController()
+        let nowPlayingVC = NowPlayingViewController()
+        let nowPlayingPresenter = NowPlayingPresenterImpl(with: nowPlayingVC)
+        nowPlayingVC.setPresenter(nowPlayingPresenter)
         nowPlayingVC.tabBarItem.image = UIImage(named: "home")
         
-        let watchedListVC = WatchedListViewController()
+        let watchedListVC = WatchedMoviesViewController()
+        let watchedPresenter = WatchedAndFavoritesPresenterImpl(with: watchedListVC, ofType: .watched)
+        watchedListVC.setPresenter(watchedPresenter)
         watchedListVC.tabBarItem.image = UIImage(named: "watched")
         
-        let favouriteListVC = FavouriteListViewController()
+        let favouriteListVC = FavouriteMoviesViewController()
+        let favouritesPresenter = WatchedAndFavoritesPresenterImpl(with: favouriteListVC, ofType: .favourites)
+        favouriteListVC.setPresenter(favouritesPresenter)
         favouriteListVC.tabBarItem.image = UIImage(named: "favourite")
         
         let tabBarController = UITabBarController()

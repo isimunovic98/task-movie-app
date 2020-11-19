@@ -106,7 +106,7 @@ extension WatchedFavouriteCell {
 //MARK: - Methods
 extension WatchedFavouriteCell {
     
-    func configure(withMovie movie: MovieEntity, forType type: String) {
+    func configure(withMovie movie: MovieEntity, ofType type: String) {
         self.movie = movie
         self.moviePosterImageView.setImageFromUrl(Constants.IMAGE_BASE_PATH + movie.posterPath!)
         yearOfReleaseLabel.text = movie.releaseDate?.extractYear
@@ -117,7 +117,7 @@ extension WatchedFavouriteCell {
     
     fileprivate func setupButton(forType type: String) {
         
-        if type == WatchedListViewController.reuseIdentifier {
+        if type == WatchedMoviesViewController.reuseIdentifier {
             button = getWatchedListButton()
             self.button?.addTarget(self, action: #selector(watchedButtonTapped), for: .touchUpInside)
         } else {
