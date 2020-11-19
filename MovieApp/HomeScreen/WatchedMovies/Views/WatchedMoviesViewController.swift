@@ -115,6 +115,8 @@ extension WatchedMoviesViewController: UITableViewDelegate, UITableViewDataSourc
         let id = Int(movies[indexPath.section].id)
         
         let movieDetailsController = MovieDetailsViewController(movieId: id)
+        let presenter = MovieDetailsPresenterImpl(with: movieDetailsController)
+        movieDetailsController.setPresenter(presenter)
         
         navigationController?.pushViewController(movieDetailsController, animated: false)
     }

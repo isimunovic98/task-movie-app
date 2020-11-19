@@ -9,17 +9,13 @@ import UIKit
 import SnapKit
 
 class MovieDetailsViewController: UIViewController {
-    
-    static var response: String = "https://api.themoviedb.org/3/movie/"
-    static var apiKey: String = "?api_key=aaf38b3909a4f117db3fb67e13ac6ef7&language=en-US"
-    
+        
     //MARK: Properties
+    var presenter: MovieDetailsPresenter?
+    
     var id: Int
-    var watched = false
-    var favourite = false
-    var movieDetails: MovieDetails?
     var rowItems = [RowItem<Any, MovieDetailsCellTypes>]()
-    let service = APIService()
+    
     
     let movieDetailsTableView: UITableView = {
         let tableView = UITableView()
@@ -53,6 +49,7 @@ class MovieDetailsViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
+        presenter?.getRowItemsOfMovie(with: id)
     }
     
     //MARK: Init
@@ -65,6 +62,9 @@ class MovieDetailsViewController: UIViewController {
         fatalError("init(coder:) has not been implemented")
     }
     
+    func setPresenter(_ presenter: MovieDetailsPresenter) {
+        self.presenter = presenter
+    }
 }
 
 //MARK: - UI
@@ -78,15 +78,13 @@ extension MovieDetailsViewController {
         addSubviews()
         setupConstraints()
         configureTableView()
-        populateTableView()
         setupButtonActions()
-        setButtonStates()
     }
     
     fileprivate func setupConstraints() {
         
         movieDetailsTableView.snp.makeConstraints { (make) in
-            make.top.leading.trailing.bottom.equalTo(view.safeAreaLayoutGuide)
+            make.edges.equalTo(view.safeAreaLayoutGuide)
         }
         
         backButton.snp.makeConstraints { (make) in
@@ -117,53 +115,34 @@ extension MovieDetailsViewController {
         view.addSubview(favouritesButton)
         view.addSubview(watchedButton)
     }
-    
-    fileprivate func populateTableView() {
-        showBlurLoader()
-        APIService.fetch(from: MovieDetailsViewController.response + String(self.id) + MovieDetailsViewController.apiKey, of: MovieDetails.self) { (movieDetails, message) in
-            guard let _movieDetails = movieDetails else { return }
-            self.movieDetails = _movieDetails
-            self.createScreenData(from: _movieDetails)
-            self.movieDetailsTableView.reloadData()
-            self.removeBlurLoader()
-        }
-    }
-    
-    func createScreenData(from details: MovieDetails) {
-        rowItems.append(RowItem(content: details.poster_path , type: .poster))
-        rowItems.append(RowItem(content: details.title , type: .title))
-        rowItems.append(RowItem(content: details.genres , type: .genres))
-        rowItems.append(RowItem(content: details.tagline , type: .quote))
-        rowItems.append(RowItem(content: details.overview , type: .overview))
-    }
-    
+        
     fileprivate func setupButtonActions() {
         backButton.addTarget(self, action: #selector(goBack), for: .touchUpInside)
         watchedButton.addTarget(self, action: #selector(watchedButtonTapped), for: .touchUpInside)
         favouritesButton.addTarget(self, action: #selector(favouriteButtonTapped), for: .touchUpInside)
     }
     
-    func setButtonStates() {
-        if let appMovie = MovieEntity.findByID( Int64(id) ) {
-            watched = appMovie.watched
-            favourite = appMovie.favourite
-            watchedButton.isSelected = watched
-            favouritesButton.isSelected = favourite
-        }
+    
+    func setRowItems(_ rowItems: [RowItem<Any, MovieDetailsCellTypes>]) {
+        self.rowItems = rowItems
+        movieDetailsTableView.reloadData()
+    }
+    
+    func startLoading() {
+        showBlurLoader()
+    }
+    
+    func stopLoading() {
+        removeBlurLoader()
     }
     
     //MARK: Actions
     @objc func watchedButtonTapped() {
-        watched = !watched
-        watchedButton.isSelected = watched
-        CoreDataHelper.saveOrUpdate(movieDetails!, watched, favourite)
-        
+        presenter?.changeWatchedButtonState()
     }
     
     @objc func favouriteButtonTapped() {
-        favourite = !favourite
-        favouritesButton.isSelected = favourite
-        CoreDataHelper.saveOrUpdate(movieDetails!, watched, favourite)
+        presenter?.changeFavouriteButtonState()
     }
     
     @objc func goBack() {
@@ -239,6 +218,5 @@ extension MovieDetailsViewController: UITableViewDelegate, UITableViewDataSource
         movieDetailsTableView.delegate = self
         movieDetailsTableView.dataSource = self
     }
-    
     
 }

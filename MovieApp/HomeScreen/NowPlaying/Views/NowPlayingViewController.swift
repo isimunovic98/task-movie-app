@@ -95,7 +95,7 @@ extension NowPlayingViewController {
     
     func configureCollectionView() {
         collectionView.delegate = self
-        collectionView.dataSource = self // = presenter??
+        collectionView.dataSource = self
         
         collectionView.register(NowPlayingCollectionCell.self, forCellWithReuseIdentifier: NowPlayingCollectionCell.reuseIdentifier)
     }
@@ -126,6 +126,8 @@ extension NowPlayingViewController: UICollectionViewDelegate {
         let id = movies[indexPath.row].id
         
         let movieDetailsController = MovieDetailsViewController(movieId: id)
+        let presenter = MovieDetailsPresenterImpl(with: movieDetailsController)
+        movieDetailsController.setPresenter(presenter)
         
         navigationController?.pushViewController(movieDetailsController, animated: false)
     }
