@@ -7,38 +7,32 @@
 
 import Foundation
 
-protocol MovieDetailsPresenter: class {
-    func getRowItemsOfMovie(with id: Int)
-    func createScreenData(from movieDetails: MovieDetails)
-    func changeWatchedButtonState()
-    func changeFavouriteButtonState()
-    func setButtonStates(_ id: Int) 
+protocol MovieDetailsDelegate: class {
+    func reloadScreenData()
+    func loading(_ shouldShowLoader: Bool)
+    func setStatusOfButton(type: ButtonType, isSelected: Bool)
 }
 
-class MovieDetailsPresenterImpl: MovieDetailsPresenter {
+class MovieDetailsPresenter {
     
     
-    private weak var view: MovieDetailsViewController?
+    var delegate: MovieDetailsDelegate!
     
     var watched = false
     var favourite = false
     var movieDetails: MovieDetails?
     var rowItems = [RowItem<Any, MovieDetailsCellTypes>]()
-    
-    
-    init(with view: MovieDetailsViewController) {
-        self.view = view
-    }
+
     
     func getRowItemsOfMovie(with id: Int) {
-        view?.startLoading()
+        delegate.loading(true)
         APIService.fetch(from: Constants.MovieDetails.response + String(id) + Constants.MovieDetails.apiKey, of: MovieDetails.self) { (movieDetails, message) in
             guard let _movieDetails = movieDetails else { return }
             self.movieDetails = _movieDetails
             self.setButtonStates(movieDetails!.id)
             self.createScreenData(from: _movieDetails)
-            self.view?.setRowItems(self.rowItems)
-            self.view?.stopLoading()
+            self.delegate.reloadScreenData()
+            self.delegate.loading(false)
         }
     }
     
@@ -52,13 +46,13 @@ class MovieDetailsPresenterImpl: MovieDetailsPresenter {
     
     func changeWatchedButtonState() {
         watched = !watched
-        view?.watchedButton.isSelected = watched
+        delegate.setStatusOfButton(type: .watch, isSelected: watched)
         CoreDataHelper.saveOrUpdate(movieDetails!, watched, favourite)
     }
     
     func changeFavouriteButtonState() {
         favourite = !favourite
-        view?.favouritesButton.isSelected = favourite
+        delegate.setStatusOfButton(type: .favourite, isSelected: favourite)
         CoreDataHelper.saveOrUpdate(movieDetails!, watched, favourite)
     }
     
@@ -66,8 +60,8 @@ class MovieDetailsPresenterImpl: MovieDetailsPresenter {
         if let appMovie = MovieEntity.findByID( Int64(id) ) {
             watched = appMovie.watched
             favourite = appMovie.favourite
-            view?.watchedButton.isSelected = watched
-            view?.favouritesButton.isSelected = favourite
+            delegate.setStatusOfButton(type: .watch, isSelected: watched)
+            delegate.setStatusOfButton(type: .favourite, isSelected: favourite)
         }
     }
 }

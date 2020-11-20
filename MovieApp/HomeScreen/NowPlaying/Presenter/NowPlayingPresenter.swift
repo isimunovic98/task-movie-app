@@ -5,38 +5,32 @@
 //  Created by Ivan Simunovic on 18.11.2020..
 //
 
-import UIKit
+import Foundation
 
-protocol NowPlayingPresenter: class {
-    init(with view: NowPlayingViewController)
-    func onViewDidLoad()
-    func getMovies(showLoader: Bool)
+protocol NowPlayingDelegate: class {
+    func reloadScreenData()
+    func loading(_ shouldShowLoader: Bool)
 }
 
-class NowPlayingPresenterImpl: NowPlayingPresenter {
+class NowPlayingPresenter {
     
-    private weak var view: NowPlayingViewController?
+    var delegate: NowPlayingDelegate!
     
-    required init(with view: NowPlayingViewController) {
-        self.view = view
-    }
-    
-    func onViewDidLoad() {
-        getMovies(showLoader: true)
-    }
+    var movies: [Movie] = []
     
     func getMovies(showLoader: Bool) {
         if showLoader {
-            view?.startLoading()
+            delegate.loading(true)
         }
         
         APIService.fetch(from: Constants.ALL_MOVIES_URL, of: Movies.self) { (movies, message) in
             guard let movies = movies?.results else { return }
-            self.view?.setMovies(movies)
+            self.movies = movies
+            self.delegate.reloadScreenData()
         }
         
         if showLoader {
-            view?.stopLoading()
+            delegate.loading(false)
         }
     }
 }

@@ -11,21 +11,19 @@ enum PresenterType {
     case watched
     case favourites
 }
-protocol WatchedAndFavouritesPresenter: class {
-    func onViewDidLoad()
-    func onViewWillAppear()
-    func getMovies()
+protocol WatchedAndFavouritesDelegate: class {
+    func reloadScreenData()
 }
 
-class WatchedAndFavoritesPresenterImpl: WatchedAndFavouritesPresenter {
+class WatchedAndFavoritesPresenter {
     
-    private weak var view: WatchedAndFavouritesProtocol?
-    private var presenterType: PresenterType?
+    private var presenterType: PresenterType
     
-    private var movies: [MovieEntity]?
+    var movies: [MovieEntity] = []
     
-    init(with view: WatchedAndFavouritesProtocol, ofType presenterType: PresenterType) {
-        self.view = view
+    var delegate: WatchedAndFavouritesDelegate!
+    
+    init(ofType presenterType: PresenterType) {
         self.presenterType = presenterType
     }
     
@@ -35,17 +33,6 @@ class WatchedAndFavoritesPresenterImpl: WatchedAndFavouritesPresenter {
         } else {
             self.movies = CoreDataHelper.fetchFavouriteMovies()
         }
-        guard let movies = movies else { return }
-        view?.setMovies(movies)
     }
-    
-    func onViewDidLoad() {
-        getMovies()
-    }
-    
-    func onViewWillAppear() {
-        getMovies()
-    }
-    
     
 }

@@ -11,11 +11,9 @@ import SnapKit
 class MovieDetailsViewController: UIViewController {
         
     //MARK: Properties
-    var presenter: MovieDetailsPresenter?
+    var presenter: MovieDetailsPresenter
     
     var id: Int
-    var rowItems = [RowItem<Any, MovieDetailsCellTypes>]()
-    
     
     let movieDetailsTableView: UITableView = {
         let tableView = UITableView()
@@ -49,11 +47,12 @@ class MovieDetailsViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
-        presenter?.getRowItemsOfMovie(with: id)
+        presenter.getRowItemsOfMovie(with: id)
     }
     
     //MARK: Init
-    init(movieId id: Int) {
+    init(presenter: MovieDetailsPresenter, movieId id: Int) {
+        self.presenter = presenter
         self.id = id
         super.init(nibName: nil, bundle: nil)
     }
@@ -62,9 +61,6 @@ class MovieDetailsViewController: UIViewController {
         fatalError("init(coder:) has not been implemented")
     }
     
-    func setPresenter(_ presenter: MovieDetailsPresenter) {
-        self.presenter = presenter
-    }
 }
 
 //MARK: - UI
@@ -122,27 +118,13 @@ extension MovieDetailsViewController {
         favouritesButton.addTarget(self, action: #selector(favouriteButtonTapped), for: .touchUpInside)
     }
     
-    
-    func setRowItems(_ rowItems: [RowItem<Any, MovieDetailsCellTypes>]) {
-        self.rowItems = rowItems
-        movieDetailsTableView.reloadData()
-    }
-    
-    func startLoading() {
-        showBlurLoader()
-    }
-    
-    func stopLoading() {
-        removeBlurLoader()
-    }
-    
     //MARK: Actions
     @objc func watchedButtonTapped() {
-        presenter?.changeWatchedButtonState()
+        presenter.changeWatchedButtonState()
     }
     
     @objc func favouriteButtonTapped() {
-        presenter?.changeFavouriteButtonState()
+        presenter.changeFavouriteButtonState()
     }
     
     @objc func goBack() {
@@ -150,22 +132,48 @@ extension MovieDetailsViewController {
     }
 }
 
+extension MovieDetailsViewController: MovieDetailsDelegate {
+    func setStatusOfButton(type: ButtonType, isSelected: Bool) {
+        switch type {
+        
+        case .watch:
+            watchedButton.isSelected = isSelected
+        
+        case .favourite:
+            favouritesButton.isSelected = isSelected
+        }
+    }
+    
+    
+    func loading(_ shouldShowLoader: Bool){
+        if shouldShowLoader {
+            showBlurLoader()
+        } else {
+            removeBlurLoader()
+        }
+    }
+    
+    func reloadScreenData() {
+        movieDetailsTableView.reloadData()
+    }
+}
+
 //MARK: - TableViewDelegate
 extension MovieDetailsViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return rowItems.count
+        return presenter.rowItems.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
-        let itemType = rowItems[indexPath.row].type
+        let itemType = presenter.rowItems[indexPath.row].type
         
         switch itemType {
         
         case .poster:
             let cell: MoviePosterCell = tableView.dequeue(for: indexPath)
             
-            let imageUrl = rowItems[indexPath.row].content
+            let imageUrl = presenter.rowItems[indexPath.row].content
             cell.setMoviePoster(from: imageUrl as! String)
             
             return cell
@@ -173,7 +181,7 @@ extension MovieDetailsViewController: UITableViewDelegate, UITableViewDataSource
         case .title:
             let cell: MovieTitleCell = tableView.dequeue(for: indexPath)
             
-            let title = rowItems[indexPath.row].content
+            let title = presenter.rowItems[indexPath.row].content
             cell.setMovieTitle(title: title as! String)
             
             return cell
@@ -181,7 +189,7 @@ extension MovieDetailsViewController: UITableViewDelegate, UITableViewDataSource
         case .genres:
             let cell: MovieGenresCell = tableView.dequeue(for: indexPath)
             
-            let genres = rowItems[indexPath.row].content
+            let genres = presenter.rowItems[indexPath.row].content
             cell.setMovieGenres(genres: genres as! [Genre])
             
             return cell
@@ -189,7 +197,7 @@ extension MovieDetailsViewController: UITableViewDelegate, UITableViewDataSource
         case .quote:
             let cell: MovieQuoteCell = tableView.dequeue(for: indexPath)
             
-            let quote = rowItems[indexPath.row].content
+            let quote = presenter.rowItems[indexPath.row].content
             cell.setMovieQuote(quote: quote as! String)
             
             return cell
@@ -197,7 +205,7 @@ extension MovieDetailsViewController: UITableViewDelegate, UITableViewDataSource
         case .overview:
             let cell: MovieOverviewCell = tableView.dequeue(for: indexPath)
             
-            let overview = rowItems[indexPath.row].content
+            let overview = presenter.rowItems[indexPath.row].content
             cell.setMovieOverview(overview: overview as! String)
             
             return cell

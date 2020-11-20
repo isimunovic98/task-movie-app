@@ -10,8 +10,7 @@ import UIKit
 class NowPlayingViewController: UIViewController {
     
     //MARK: Properties
-    var presenter: NowPlayingPresenter?
-    var movies = [Movie]()
+    var presenter: NowPlayingPresenter
     
     lazy var collectionView: UICollectionView = {
         let collectionView = UICollectionView(frame: self.view.frame, collectionViewLayout: UICollectionViewFlowLayout())
@@ -27,7 +26,8 @@ class NowPlayingViewController: UIViewController {
         return control
     }()
     
-    init() {
+    init(presenter: NowPlayingPresenter) {
+        self.presenter = presenter
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -35,15 +35,11 @@ class NowPlayingViewController: UIViewController {
         fatalError("init(coder:) has not been implemented")
     }
     
-    func setPresenter(_ presenter: NowPlayingPresenter) {
-        self.presenter = presenter
-    }
-    
     //MARK: Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
-        presenter?.onViewDidLoad()
+        presenter.getMovies(showLoader: true)
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -89,7 +85,7 @@ extension NowPlayingViewController {
     }
     
     @objc func refresh() {
-        presenter?.getMovies(showLoader: false)
+        presenter.getMovies(showLoader: false)
         refreshControl.endRefreshing()
     }
     
@@ -102,32 +98,29 @@ extension NowPlayingViewController {
 }
 
 //MARK: - View Protocol
-extension NowPlayingViewController {
-
-    func startLoading() {
-        showBlurLoader()
+extension NowPlayingViewController: NowPlayingDelegate {
+    
+    func loading(_ shouldShowLoader: Bool){
+        if shouldShowLoader {
+            showBlurLoader()
+        } else {
+            removeBlurLoader()
+        }
     }
     
-    func stopLoading() {
-        removeBlurLoader()
+    func reloadScreenData() {
+        collectionView.reloadData()
     }
-    
-    func setMovies(_ movies: [Movie]) {
-        self.movies = movies
-        self.collectionView.reloadData()
-    }
-    
-    
 }
 
 //MARK: - CollectionViewDelegate
 extension NowPlayingViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        let id = movies[indexPath.row].id
+        let id = presenter.movies[indexPath.row].id
         
-        let movieDetailsController = MovieDetailsViewController(movieId: id)
-        let presenter = MovieDetailsPresenterImpl(with: movieDetailsController)
-        movieDetailsController.setPresenter(presenter)
+        let presenter = MovieDetailsPresenter()
+        let movieDetailsController = MovieDetailsViewController(presenter: presenter, movieId: id)
+        presenter.delegate = movieDetailsController
         
         navigationController?.pushViewController(movieDetailsController, animated: false)
     }
@@ -136,13 +129,14 @@ extension NowPlayingViewController: UICollectionViewDelegate {
 //MARK: - CollectionViewDataSource
 extension NowPlayingViewController: UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return movies.count
+        return presenter.movies.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        let movie = presenter.movies[indexPath.row]
         let cell: NowPlayingCollectionCell = collectionView.dequeue(for: indexPath)
         
-        cell.configure(withMovie: movies[indexPath.row])
+        cell.configure(withMovie: movie)
         
         return cell
     }

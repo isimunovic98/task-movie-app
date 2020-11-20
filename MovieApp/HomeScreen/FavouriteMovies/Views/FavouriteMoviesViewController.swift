@@ -9,9 +9,7 @@ import UIKit
 class FavouriteMoviesViewController: UIViewController, ReusableView {
     
     //MARK: Properties
-    var presenter: WatchedAndFavouritesPresenter?
-    
-    var movies = [MovieEntity]()
+    var presenter: WatchedAndFavoritesPresenter
     
     let tableView: UITableView = {
         let tableView = UITableView()
@@ -25,17 +23,24 @@ class FavouriteMoviesViewController: UIViewController, ReusableView {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
-        presenter?.onViewDidLoad()
+        presenter.getMovies()
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        presenter?.onViewWillAppear()
+        presenter.getMovies()
     }
     
-    func setPresenter(_ presenter: WatchedAndFavouritesPresenter) {
+    //MARK: Init
+    init(presenter: WatchedAndFavoritesPresenter) {
         self.presenter = presenter
+        super.init(nibName: nil, bundle: nil)
     }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
 }
 
 //MARK: - UI
@@ -68,9 +73,8 @@ extension FavouriteMoviesViewController {
     }
 }
 
-extension FavouriteMoviesViewController: WatchedAndFavouritesProtocol {
-    func setMovies(_ movies: [MovieEntity]) {
-        self.movies = movies
+extension FavouriteMoviesViewController: WatchedAndFavouritesDelegate {
+    func reloadScreenData() {
         tableView.reloadData()
     }
 }
@@ -81,14 +85,14 @@ extension FavouriteMoviesViewController: UITableViewDelegate, UITableViewDataSou
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell: WatchedFavouriteCell = tableView.dequeue(for: indexPath)
         
-        let movie = movies[indexPath.section]
+        let movie = presenter.movies[indexPath.section]
         
         cell.configure(withMovie: movie, ofType: FavouriteMoviesViewController.reuseIdentifier)
         return cell
     }
     
     func numberOfSections(in tableView: UITableView) -> Int {
-        return self.movies.count
+        return presenter.movies.count
     }
     
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
@@ -110,11 +114,11 @@ extension FavouriteMoviesViewController: UITableViewDelegate, UITableViewDataSou
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let id = Int(movies[indexPath.section].id)
+        let id = Int(presenter.movies[indexPath.section].id)
         
-        let movieDetailsController = MovieDetailsViewController(movieId: id)
-        let presenter = MovieDetailsPresenterImpl(with: movieDetailsController)
-        movieDetailsController.setPresenter(presenter)
+        let presenter = MovieDetailsPresenter()
+        let movieDetailsController = MovieDetailsViewController(presenter: presenter, movieId: id)
+        presenter.delegate = movieDetailsController
         
         navigationController?.pushViewController(movieDetailsController, animated: false)
     }
