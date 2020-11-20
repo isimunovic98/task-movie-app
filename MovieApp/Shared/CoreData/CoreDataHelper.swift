@@ -22,17 +22,6 @@ class CoreDataHelper {
     }()
     
     //CREATE
-    static func newMovieEntity(_ movie: Movie) -> MovieEntity {
-        let newAppMovie = MovieEntity(context: context)
-        newAppMovie.id = Int64(movie.id)
-        newAppMovie.title = movie.title
-        newAppMovie.overview = movie.overview
-        newAppMovie.posterPath = movie.poster_path
-        newAppMovie.releaseDate = movie.release_date
-        
-        return newAppMovie
-    }
-    
     static func newMovieEntity(_ movie: MovieDetails) -> MovieEntity {
         let newAppMovie = MovieEntity(context: context)
         newAppMovie.id = Int64(movie.id)
@@ -45,39 +34,7 @@ class CoreDataHelper {
     }
     
     //READ
-    static func fetchWatchedMovies() -> [MovieEntity] {
-        var items: [MovieEntity]
-        let fetchRequest = MovieEntity.fetchRequest() as NSFetchRequest<MovieEntity>
-        let predicate = NSPredicate(format: "watched = %d", true)
-        
-        fetchRequest.predicate = predicate
-        
-        do{
-            items = try context.fetch(fetchRequest)
-            return items
-        }
-        catch {
-            
-        }
-        return [MovieEntity]()
-    }
-    
-    static func fetchFavouriteMovies() -> [MovieEntity] {
-        var items: [MovieEntity]
-        let fetchRequest = MovieEntity.fetchRequest() as NSFetchRequest<MovieEntity>
-        let predicate = NSPredicate(format: "favourite = %d", true)
-        
-        fetchRequest.predicate = predicate
-        
-        do{
-            items = try context.fetch(fetchRequest)
-            return items
-        }
-        catch {
-            
-        }
-        return [MovieEntity]()
-    }
+
     
     //UPDATE
     static func update(_ appMovie: MovieEntity,_ watched: Bool,_ favourite: Bool ){
@@ -122,31 +79,6 @@ class CoreDataHelper {
     }
     
     //Methods
-    static func saveOrUpdate(_ movie: Movie,_ watched: Bool,_ favourite: Bool) {
-        if let appMovie = MovieEntity.findByID(Int64(movie.id)) {
-                update(appMovie, watched, favourite)
-            do {
-                try context.save()
-            }
-            catch {
-                fatalError("Error saving movie")
-            }
-        } else {
-            save(movie, watched, favourite)
-        }
-    }
-    
-    static func save(_ movie: Movie,_ watched: Bool,_ favourite: Bool) {
-        let newAppMovie = newMovieEntity(movie)
-        newAppMovie.watched = watched
-        newAppMovie.favourite = favourite
-        do {
-            try self.context.save()
-        }
-        catch {
-            fatalError("Error saving movie")
-        }
-    }
     
     static func saveOrUpdate(_ movie: MovieDetails,_ watched: Bool,_ favourite: Bool) {
         if let appMovie = MovieEntity.findByID(Int64(movie.id)) {
@@ -173,5 +105,77 @@ class CoreDataHelper {
             fatalError("Error saving movie")
         }
     }
-
+    
+    static func createMovieEtitiy(from movie: Movie) -> MovieEntity {
+        let newAppMovie = MovieEntity(context: context)
+        newAppMovie.id = Int64(movie.id)
+        newAppMovie.title = movie.title
+        newAppMovie.overview = movie.overview
+        newAppMovie.posterPath = movie.poster_path
+        newAppMovie.releaseDate = movie.release_date
+        newAppMovie.watched = false
+        newAppMovie.favourite = false
+        
+        return newAppMovie
+    }
+    
+    static func saveOrUpdate(_ movie: MovieEntity,_ watched: Bool,_ favourite: Bool) {
+        if let movieEntity = MovieEntity.findByID(movie.id) {
+                update(movieEntity, watched, favourite)
+            do {
+                try context.save()
+            }
+            catch {
+                fatalError("Error saving movie")
+            }
+        } else {
+            save(movie, watched, favourite)
+        }
+    }
+    
+    static func save(_ movie: MovieEntity,_ watched: Bool,_ favourite: Bool) {
+        let movieEntity = movie
+        movieEntity.watched = watched
+        movieEntity.favourite = favourite
+        do {
+            try self.context.save()
+        }
+        catch {
+            fatalError("Error saving movie")
+        }
+    }
+    
+    static func fetchWatchedMovies() -> [MovieEntity] {
+        var items: [MovieEntity]
+        let fetchRequest = MovieEntity.fetchRequest() as NSFetchRequest<MovieEntity>
+        let predicate = NSPredicate(format: "watched = %d", true)
+        
+        fetchRequest.predicate = predicate
+        
+        do{
+            items = try context.fetch(fetchRequest)
+            return items
+        }
+        catch {
+            
+        }
+        return [MovieEntity]()
+    }
+    
+    static func fetchFavouriteMovies() -> [MovieEntity] {
+        var items: [MovieEntity]
+        let fetchRequest = MovieEntity.fetchRequest() as NSFetchRequest<MovieEntity>
+        let predicate = NSPredicate(format: "favourite = %d", true)
+        
+        fetchRequest.predicate = predicate
+        
+        do{
+            items = try context.fetch(fetchRequest)
+            return items
+        }
+        catch {
+            
+        }
+        return [MovieEntity]()
+    }
 }

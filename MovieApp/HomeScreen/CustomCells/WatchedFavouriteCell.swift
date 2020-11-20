@@ -113,6 +113,7 @@ extension WatchedFavouriteCell {
         movieTitleLabel.text = movie.title
         movieOverviewLabel.text = movie.overview
         setupButton(forType: type)
+        button?.isSelected = true
     }
     
     fileprivate func setupButton(forType type: String) {
@@ -129,15 +130,19 @@ extension WatchedFavouriteCell {
     //MARK: Actions
     
     @objc func watchedButtonTapped() {
-        button?.isSelected = false
+        movie!.watched = !movie!.watched
         
-        CoreDataHelper.updateWatched(withId: movie!.id, false)
+        button?.isSelected = movie!.watched
+
+        CoreDataHelper.updateWatched(withId: movie!.id, movie!.watched)
     }
     
     @objc func favouriteButtonTapped() {
-        button?.isSelected = false
+        movie!.favourite = !movie!.favourite
         
-        CoreDataHelper.updateFavourite(withId: movie!.id, false)
+        button?.isSelected = movie!.favourite
+        
+        CoreDataHelper.updateFavourite(withId: movie!.id, movie!.favourite)
     }
 }
 
@@ -149,7 +154,6 @@ extension WatchedFavouriteCell {
         let interactionButton: WatchedCustomButton = {
             let button = WatchedCustomButton()
             button.translatesAutoresizingMaskIntoConstraints = false
-            button.isSelected = true
             return button
         }()
         
@@ -164,7 +168,6 @@ extension WatchedFavouriteCell {
         let interactionButton: FavouritesCustomButton = {
             let button = FavouritesCustomButton()
             button.translatesAutoresizingMaskIntoConstraints = false
-            button.isSelected = true
             return button
         }()
         

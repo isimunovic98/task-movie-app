@@ -17,12 +17,9 @@ class BlurLoaderHelper {
     
     static func addBlurLoader(to view: UIView) {
         view.addSubview(blurLoader)
-        NSLayoutConstraint.activate([
-            blurLoader.topAnchor.constraint(equalTo: view.topAnchor),
-            blurLoader.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            blurLoader.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            blurLoader.bottomAnchor.constraint(equalTo: view.bottomAnchor)
-        ])
+        blurLoader.snp.makeConstraints { (make) in
+            make.edges.equalTo(view)
+        }
     }
     
     static func removeBlurLoader() {

@@ -119,7 +119,7 @@ extension NowPlayingViewController: UICollectionViewDelegate {
         let id = presenter.movies[indexPath.row].id
         
         let presenter = MovieDetailsPresenter()
-        let movieDetailsController = MovieDetailsViewController(presenter: presenter, movieId: id)
+        let movieDetailsController = MovieDetailsViewController(presenter: presenter, movieId: Int(id))
         presenter.delegate = movieDetailsController
         
         navigationController?.pushViewController(movieDetailsController, animated: false)
@@ -134,6 +134,7 @@ extension NowPlayingViewController: UICollectionViewDataSource {
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let movie = presenter.movies[indexPath.row]
+        
         let cell: NowPlayingCollectionCell = collectionView.dequeue(for: indexPath)
         
         cell.configure(withMovie: movie)

@@ -33,6 +33,7 @@ class WatchedAndFavoritesPresenter {
         } else {
             self.movies = CoreDataHelper.fetchFavouriteMovies()
         }
+        delegate.reloadScreenData()
     }
     
 }

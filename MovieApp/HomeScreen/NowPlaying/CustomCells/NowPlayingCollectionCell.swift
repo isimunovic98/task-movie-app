@@ -10,10 +10,7 @@ import UIKit
 class NowPlayingCollectionCell: UICollectionViewCell {
     
     //MARK: Properties
-    var movie: Movie?
-
-    var favourite: Bool = false
-    var watched: Bool = false
+    var movie: MovieEntity?
     
     let moviePosterImageView: UIImageView = {
         let imageView = UIImageView()
@@ -143,43 +140,31 @@ extension NowPlayingCollectionCell {
 
 //MARK: - Methods
 extension NowPlayingCollectionCell {
-    func configure(withMovie movie: Movie) {
+    func configure(withMovie movie: MovieEntity) {
         self.movie = movie
-        self.moviePosterImageView.setImageFromUrl(Constants.IMAGE_BASE_PATH + movie.poster_path)
-        yearOfReleaseLabel.text = movie.release_date.extractYear
+        self.moviePosterImageView.setImageFromUrl(Constants.IMAGE_BASE_PATH + movie.posterPath!)
+        yearOfReleaseLabel.text = movie.releaseDate?.extractYear
         movieTitleLabel.text = movie.title
         movieOverviewLabel.text = movie.overview
-        setButtonStates()
+        watchedButton.isSelected = movie.watched
+        favouritesButton.isSelected = movie.favourite
     }
     
     fileprivate func setupButtonActions() {
         watchedButton.addTarget(self, action: #selector(watchedButtonTapped), for: .touchUpInside)
         favouritesButton.addTarget(self, action: #selector(favouriteButtonTapped), for: .touchUpInside)
     }
-    
-    func setButtonStates() {
-        if let movie = MovieEntity.findByID(Int64(movie!.id)) {
-            watched = movie.watched
-            favourite = movie.favourite
-            watchedButton.isSelected = watched
-            favouritesButton.isSelected = favourite
-        } else {
-            watchedButton.isSelected = false
-            watchedButton.isSelected = false
-        }
-    }
-    
+        
     //MARK: Actions
     @objc func watchedButtonTapped() {
-        watched = !watched
-        watchedButton.isSelected = watched
-        CoreDataHelper.saveOrUpdate(movie!, watched, favourite)
+        movie!.watched = !movie!.watched
+        watchedButton.isSelected = movie!.watched
+        CoreDataHelper.saveOrUpdate(movie!, movie!.watched, movie!.favourite)
     }
     
     @objc func favouriteButtonTapped() {
-        favourite = !favourite
-        favouritesButton.isSelected = favourite
-        CoreDataHelper.saveOrUpdate(movie!, watched, favourite)
+        movie!.favourite = !movie!.favourite
+        favouritesButton.isSelected = movie!.favourite
+        CoreDataHelper.saveOrUpdate(movie!, movie!.watched, movie!.favourite)
     }
 }
-

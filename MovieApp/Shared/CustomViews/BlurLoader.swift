@@ -12,7 +12,6 @@ class BlurLoader: UIView {
     let blurEffectView: UIVisualEffectView = {
         let visualEffectView = UIVisualEffectView(effect: UIBlurEffect(style: .dark))
         visualEffectView.translatesAutoresizingMaskIntoConstraints = false
-
         return visualEffectView
     }()
 
