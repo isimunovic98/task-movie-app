@@ -112,7 +112,7 @@ class CoreDataHelper {
     
     //DELETE
     static func deleteAllData() {
-        let ReqVar = NSFetchRequest<NSFetchRequestResult>(entityName: "MovieAppMovie")
+        let ReqVar = NSFetchRequest<NSFetchRequestResult>(entityName: "MovieEntity")
         let DelAllReqVar = NSBatchDeleteRequest(fetchRequest: ReqVar)
         do {
             try context.execute(DelAllReqVar)
