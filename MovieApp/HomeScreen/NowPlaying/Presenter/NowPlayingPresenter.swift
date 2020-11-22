@@ -10,6 +10,7 @@ import Foundation
 protocol NowPlayingDelegate: class {
     func reloadScreenData()
     func loading(_ shouldShowLoader: Bool)
+    func presentJsonError(_ message: String)
 }
 
 class NowPlayingPresenter {
@@ -24,7 +25,10 @@ class NowPlayingPresenter {
         }
         
         APIService.fetch(from: Constants.ALL_MOVIES_URL, of: Movies.self) { (moviesResponse, message) in
-            guard let moviesResponse = moviesResponse?.results else { return }
+            guard let moviesResponse = moviesResponse?.results else {
+                self.delegate.presentJsonError(message)
+                return
+            }
             self.createScreenData(from: moviesResponse)
             self.delegate.reloadScreenData()
         }

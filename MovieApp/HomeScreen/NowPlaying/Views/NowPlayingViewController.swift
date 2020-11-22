@@ -111,6 +111,10 @@ extension NowPlayingViewController: NowPlayingDelegate {
     func reloadScreenData() {
         collectionView.reloadData()
     }
+    
+    func presentJsonError(_ message: String) {
+        presentJSONErrorAlert(message)
+    }
 }
 
 //MARK: - CollectionViewDelegate

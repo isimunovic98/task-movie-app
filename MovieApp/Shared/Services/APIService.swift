@@ -20,9 +20,9 @@ class APIService {
                 let decodedObject: T = try JSONDecoder().decode(T.self, from: data)
                 completion(decodedObject, "")
             } catch {
-                completion(nil, error.localizedDescription)            }
-           }
+                completion(nil, error.localizedDescription)
+            }
+        }
     }
-
 }
 
