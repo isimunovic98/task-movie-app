@@ -23,6 +23,7 @@
 		024B961C255173E10026FA0E /* BlurLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 024B961B255173E10026FA0E /* BlurLoader.swift */; };
 		0250EC682551D1780034E527 /* Extensions+UIViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0250EC672551D1780034E527 /* Extensions+UIViewController.swift */; };
 		0250EC6C2551E4870034E527 /* ShaderBottomToTop.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0250EC6B2551E4870034E527 /* ShaderBottomToTop.swift */; };
+		026E6B552570104F00CDD1A6 /* MovieRepresantable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 026E6B542570104F00CDD1A6 /* MovieRepresantable.swift */; };
 		028315BD2552E5C3008F9963 /* WatchedCustomButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 028315BC2552E5C3008F9963 /* WatchedCustomButton.swift */; };
 		028315C02552E76F008F9963 /* FavouritesCustomButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 028315BF2552E76F008F9963 /* FavouritesCustomButton.swift */; };
 		028315EB2553335B008F9963 /* MovieApp.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 028315E92553335B008F9963 /* MovieApp.xcdatamodeld */; };
@@ -70,6 +71,7 @@
 		024B961B255173E10026FA0E /* BlurLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlurLoader.swift; sourceTree = "<group>"; };
 		0250EC672551D1780034E527 /* Extensions+UIViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Extensions+UIViewController.swift"; sourceTree = "<group>"; };
 		0250EC6B2551E4870034E527 /* ShaderBottomToTop.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShaderBottomToTop.swift; sourceTree = "<group>"; };
+		026E6B542570104F00CDD1A6 /* MovieRepresantable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovieRepresantable.swift; sourceTree = "<group>"; };
 		028315BC2552E5C3008F9963 /* WatchedCustomButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchedCustomButton.swift; sourceTree = "<group>"; };
 		028315BF2552E76F008F9963 /* FavouritesCustomButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavouritesCustomButton.swift; sourceTree = "<group>"; };
 		028315EA2553335B008F9963 /* MovieApp.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = MovieApp.xcdatamodel; sourceTree = "<group>"; };
@@ -153,6 +155,7 @@
 		022DE9372553FBEB004B902C /* CoreData */ = {
 			isa = PBXGroup;
 			children = (
+				0235DE862553F4F700556814 /* Model */,
 				022DE9382553FC01004B902C /* CoreDataHelper.swift */,
 			);
 			path = CoreData;
@@ -233,13 +236,21 @@
 			path = CustomViews;
 			sourceTree = "<group>";
 		};
+		026E6B5325700F5900CDD1A6 /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				026E6B542570104F00CDD1A6 /* MovieRepresantable.swift */,
+			);
+			path = Model;
+			sourceTree = "<group>";
+		};
 		028FA7E125503F0600942985 /* Shared */ = {
 			isa = PBXGroup;
 			children = (
+				026E6B5325700F5900CDD1A6 /* Model */,
 				02AB2ADA255F1C8B00FA7628 /* Subclasses */,
 				0226529225595DFF00607F40 /* Services */,
 				022DE9372553FBEB004B902C /* CoreData */,
-				0235DE862553F4F700556814 /* Model */,
 				0250EC6A2551E46A0034E527 /* CustomViews */,
 				0246203E25519ED9003F6770 /* Protocols */,
 				02BBD5CA254C422500058844 /* Extensions */,
@@ -574,6 +585,7 @@
 				022DE95025545A9E004B902C /* WatchedMoviesViewController.swift in Sources */,
 				022DE94C255458B8004B902C /* WatchedFavouriteCell.swift in Sources */,
 				0250EC682551D1780034E527 /* Extensions+UIViewController.swift in Sources */,
+				026E6B552570104F00CDD1A6 /* MovieRepresantable.swift in Sources */,
 				02BBD5C2254C3CB700058844 /* Movie.swift in Sources */,
 				028FA7E825503F6500942985 /* EnumMovieDetailsCellTypes.swift in Sources */,
 				0246204025519EF4003F6770 /* ReusableView.swift in Sources */,

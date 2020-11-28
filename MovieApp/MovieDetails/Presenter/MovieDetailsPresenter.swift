@@ -10,58 +10,61 @@ import Foundation
 protocol MovieDetailsDelegate: class {
     func reloadScreenData()
     func loading(_ shouldShowLoader: Bool)
-    func setStatusOfButton(type: ButtonType, isSelected: Bool)
+    func setStatusOfButtons(for movieRepresentable: MovieRepresentable)
 }
 
 class MovieDetailsPresenter {
-    
-    
     var delegate: MovieDetailsDelegate!
     
-    var watched = false
-    var favourite = false
-    var movieDetails: MovieDetails?
-    var rowItems = [RowItem<Any, MovieDetailsCellTypes>]()
-
+    var id: Int
+    var movieRepresentable: MovieRepresentable?
+    var rowItems = [RowItem]()
     
-    func getRowItemsOfMovie(with id: Int) {
+    init(_ id: Int) {
+        self.id = id
+    }
+    
+    func makeMovieDetailsRepresentable() {
         delegate.loading(true)
         APIService.fetch(from: Constants.MovieDetails.response + String(id) + Constants.MovieDetails.apiKey, of: MovieDetails.self) { (movieDetails, message) in
-            guard let _movieDetails = movieDetails else { return }
-            self.movieDetails = _movieDetails
-            self.setButtonStates(movieDetails!.id)
-            self.createScreenData(from: _movieDetails)
-            self.delegate.reloadScreenData()
+            guard let movieDetails = movieDetails else { return }
+            self.movieRepresentable = MovieRepresentable(movieDetails)
+            self.createScreenData(from: self.movieRepresentable)
             self.delegate.loading(false)
         }
     }
     
-    func createScreenData(from movieDetails: MovieDetails) {
-        rowItems.append(RowItem(content: movieDetails.poster_path , type: .poster))
-        rowItems.append(RowItem(content: movieDetails.title , type: .title))
-        rowItems.append(RowItem(content: movieDetails.genres , type: .genres))
-        rowItems.append(RowItem(content: movieDetails.tagline , type: .quote))
-        rowItems.append(RowItem(content: movieDetails.overview , type: .overview))
+    func createScreenData(from movieRepresentable: MovieRepresentable?) {
+        guard let movieRepresentable = movieRepresentable else { return }
+        rowItems.append(RowItem(content: movieRepresentable.posterPath , type: .poster))
+        rowItems.append(RowItem(content: movieRepresentable.title , type: .title))
+        rowItems.append(RowItem(content: movieRepresentable.genres!, type: .genres))
+        rowItems.append(RowItem(content: movieRepresentable.tagline!, type: .quote))
+        rowItems.append(RowItem(content: movieRepresentable.overview , type: .overview))
+        
+        if let movie = MovieEntity.findByID(id) {
+            movieRepresentable.watched = movie.watched
+            movieRepresentable.favourite = movie.favourite
+        }
+        
+        delegate.setStatusOfButtons(for: movieRepresentable)
+        delegate.reloadScreenData()
     }
     
+
     func changeWatchedButtonState() {
-        watched = !watched
-        delegate.setStatusOfButton(type: .watch, isSelected: watched)
-        CoreDataHelper.saveOrUpdate(movieDetails!, watched, favourite)
+        if let movieRepresentable = movieRepresentable {
+            movieRepresentable.watched = !movieRepresentable.watched
+            delegate.setStatusOfButtons(for: movieRepresentable)
+            CoreDataHelper.saveOrUpdate(movieRepresentable)
+        }
     }
     
     func changeFavouriteButtonState() {
-        favourite = !favourite
-        delegate.setStatusOfButton(type: .favourite, isSelected: favourite)
-        CoreDataHelper.saveOrUpdate(movieDetails!, watched, favourite)
-    }
-    
-    func setButtonStates(_ id: Int) {
-        if let appMovie = MovieEntity.findByID( Int64(id) ) {
-            watched = appMovie.watched
-            favourite = appMovie.favourite
-            delegate.setStatusOfButton(type: .watch, isSelected: watched)
-            delegate.setStatusOfButton(type: .favourite, isSelected: favourite)
+        if let movieRepresentable = movieRepresentable {
+            movieRepresentable.favourite = !movieRepresentable.favourite
+            delegate.setStatusOfButtons(for: movieRepresentable)
+            CoreDataHelper.saveOrUpdate(movieRepresentable)
         }
     }
 }

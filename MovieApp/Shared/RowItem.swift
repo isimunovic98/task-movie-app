@@ -7,11 +7,11 @@
 
 import Foundation
 
-class RowItem <ItemContent, ItemType>{
-    var content: ItemContent
+class RowItem {
+    var content: Any
     var type: MovieDetailsCellTypes
     
-    init(content: ItemContent, type: MovieDetailsCellTypes) {
+    init(content: Any, type: MovieDetailsCellTypes) {
         self.content = content
         self.type = type
     }

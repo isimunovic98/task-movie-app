@@ -13,8 +13,6 @@ class MovieDetailsViewController: UIViewController {
     //MARK: Properties
     var presenter: MovieDetailsPresenter
     
-    var id: Int
-    
     let movieDetailsTableView: UITableView = {
         let tableView = UITableView()
         tableView.translatesAutoresizingMaskIntoConstraints = false
@@ -47,13 +45,12 @@ class MovieDetailsViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
-        presenter.getRowItemsOfMovie(with: id)
+        presenter.makeMovieDetailsRepresentable()
     }
     
     //MARK: Init
-    init(presenter: MovieDetailsPresenter, movieId id: Int) {
+    init(presenter: MovieDetailsPresenter) {
         self.presenter = presenter
-        self.id = id
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -133,18 +130,11 @@ extension MovieDetailsViewController {
 }
 
 extension MovieDetailsViewController: MovieDetailsDelegate {
-    func setStatusOfButton(type: ButtonType, isSelected: Bool) {
-        switch type {
-        
-        case .watch:
-            watchedButton.isSelected = isSelected
-        
-        case .favourite:
-            favouritesButton.isSelected = isSelected
-        }
+    func setStatusOfButtons(for movieRepresenable: MovieRepresentable) {
+        watchedButton.isSelected = movieRepresenable.watched
+        favouritesButton.isSelected = movieRepresenable.favourite
     }
-    
-    
+
     func loading(_ shouldShowLoader: Bool){
         if shouldShowLoader {
             showBlurLoader()
