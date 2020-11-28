@@ -7,10 +7,16 @@
 
 import UIKit
 
+protocol NowPlayingCellDelegate: class {
+    func onWatchedTapped(for movieRepresentable: MovieRepresentable)
+    func onFavouritesTapped(for movieRepresentable: MovieRepresentable)
+}
 class NowPlayingCollectionCell: UICollectionViewCell {
     
     //MARK: Properties
-    var movie: MovieEntity?
+    var movieRepresentable: MovieRepresentable?
+    
+    weak var cellDelegate: NowPlayingCellDelegate?
     
     let moviePosterImageView: UIImageView = {
         let imageView = UIImageView()
@@ -140,10 +146,10 @@ extension NowPlayingCollectionCell {
 
 //MARK: - Methods
 extension NowPlayingCollectionCell {
-    func configure(withMovie movie: MovieEntity) {
-        self.movie = movie
-        self.moviePosterImageView.setImageFromUrl(Constants.IMAGE_BASE_PATH + movie.posterPath!)
-        yearOfReleaseLabel.text = movie.releaseDate?.extractYear
+    func configure(withMovie movie: MovieRepresentable) {
+        self.movieRepresentable = movie
+        self.moviePosterImageView.setImageFromUrl(Constants.IMAGE_BASE_PATH + movie.posterPath)
+        yearOfReleaseLabel.text = movie.releaseDate.extractYear
         movieTitleLabel.text = movie.title
         movieOverviewLabel.text = movie.overview
         watchedButton.isSelected = movie.watched
@@ -157,14 +163,16 @@ extension NowPlayingCollectionCell {
         
     //MARK: Actions
     @objc func watchedButtonTapped() {
-        movie!.watched = !movie!.watched
-        watchedButton.isSelected = movie!.watched
-        CoreDataHelper.saveOrUpdate(movie!, movie!.watched, movie!.favourite)
+        guard let movieRepresentable = movieRepresentable else {
+            return
+        }
+        cellDelegate?.onWatchedTapped(for: movieRepresentable)
     }
     
     @objc func favouriteButtonTapped() {
-        movie!.favourite = !movie!.favourite
-        favouritesButton.isSelected = movie!.favourite
-        CoreDataHelper.saveOrUpdate(movie!, movie!.watched, movie!.favourite)
+        guard let movieRepresentable = movieRepresentable else {
+            return
+        }
+        cellDelegate?.onFavouritesTapped(for: movieRepresentable)
     }
 }

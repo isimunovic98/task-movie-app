@@ -44,7 +44,7 @@ class NowPlayingViewController: UIViewController {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        collectionView.reloadData()
+        presenter.getMovies(showLoader: true)
     }
 }
 
@@ -117,13 +117,25 @@ extension NowPlayingViewController: NowPlayingDelegate {
     }
 }
 
+extension NowPlayingViewController: NowPlayingCellDelegate {
+    func onWatchedTapped(for movieRepresentable: MovieRepresentable) {
+        presenter.watchedTapped(on: movieRepresentable)
+    }
+    
+    func onFavouritesTapped(for movieRepresentable: MovieRepresentable) {
+        presenter.favouriteTapped(on: movieRepresentable)
+    }
+    
+    
+}
+
 //MARK: - CollectionViewDelegate
 extension NowPlayingViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        let id = presenter.movies[indexPath.row].id
+        let id = presenter.moviesRepresentable[indexPath.row].id
         
-        let presenter = MovieDetailsPresenter()
-        let movieDetailsController = MovieDetailsViewController(presenter: presenter, movieId: Int(id))
+        let presenter = MovieDetailsPresenter(id)
+        let movieDetailsController = MovieDetailsViewController(presenter: presenter)
         presenter.delegate = movieDetailsController
         
         navigationController?.pushViewController(movieDetailsController, animated: false)
@@ -133,15 +145,17 @@ extension NowPlayingViewController: UICollectionViewDelegate {
 //MARK: - CollectionViewDataSource
 extension NowPlayingViewController: UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return presenter.movies.count
+        return presenter.moviesRepresentable.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let movie = presenter.movies[indexPath.row]
+        let movie = presenter.moviesRepresentable[indexPath.row]
         
         let cell: NowPlayingCollectionCell = collectionView.dequeue(for: indexPath)
         
         cell.configure(withMovie: movie)
+        
+        cell.cellDelegate = self
         
         return cell
     }

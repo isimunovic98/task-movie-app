@@ -17,19 +17,19 @@ class NowPlayingPresenter {
     
     var delegate: NowPlayingDelegate!
     
-    var movies: [MovieEntity] = []
+    var moviesRepresentable: [MovieRepresentable] = []
     
     func getMovies(showLoader: Bool) {
         if showLoader {
             delegate.loading(true)
         }
         
-        APIService.fetch(from: Constants.ALL_MOVIES_URL, of: Movies.self) { (moviesResponse, message) in
-            guard let moviesResponse = moviesResponse?.results else {
+        APIService.fetch(from: Constants.ALL_MOVIES_URL, of: Movies.self) { (movies, message) in
+            guard let movies = movies?.results else {
                 self.delegate.presentJsonError(message)
                 return
             }
-            self.createScreenData(from: moviesResponse)
+            self.createScreenData(from: movies)
             self.delegate.reloadScreenData()
         }
         
@@ -37,20 +37,40 @@ class NowPlayingPresenter {
             delegate.loading(false)
         }
     }
-    
-    //Takes all the movies from api call, if that movie exists in Core Data its just appended,
-    // if not its properties are copied into new MovieEntity object with watched and favourite set to false
-    private func createScreenData(from moviesResponse: [Movie]) {
-        var movies = [MovieEntity]()
+
+    private func createScreenData(from movies: [Movie]) {
+        var moviesTemp = [MovieRepresentable]()
         
-        for movie in moviesResponse {
-            if let movieRepresentable = MovieEntity.findByID(Int64(movie.id)) {
-                movies.append(movieRepresentable)
+        for movie in movies {
+            if let movieEntity = MovieEntity.findByID(movie.id) {
+                let movieRepresentable = MovieRepresentable(movieEntity)
+                moviesTemp.append(movieRepresentable)
             } else {
-                movies.append(CoreDataHelper.createMovieEtitiy(from: movie))
+                let movieRepresentable = MovieRepresentable(movie)
+                moviesTemp.append(movieRepresentable)
             }
         }
         
-        self.movies = movies
+        self.moviesRepresentable = moviesTemp
+    }
+    
+    func watchedTapped(on movieRepresentable: MovieRepresentable) {
+        for movie in moviesRepresentable {
+            if movie.id == movieRepresentable.id {
+                movie.watched = !movie.watched
+            }
+        }
+        CoreDataHelper.saveOrUpdate(movieRepresentable)
+        delegate.reloadScreenData()
+    }
+    
+    func favouriteTapped(on movieRepresentable: MovieRepresentable) {
+        for movie in moviesRepresentable {
+            if movie.id == movieRepresentable.id {
+                movie.favourite = !movie.favourite
+            }
+        }
+        CoreDataHelper.saveOrUpdate(movieRepresentable)
+        delegate.reloadScreenData()
     }
 }
