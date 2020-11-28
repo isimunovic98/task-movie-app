@@ -19,7 +19,7 @@ class WatchedAndFavoritesPresenter {
     
     private var presenterType: PresenterType
     
-    var movies: [MovieEntity] = []
+    var moviesRepresentable: [MovieRepresentable] = []
     
     var delegate: WatchedAndFavouritesDelegate!
     
@@ -29,11 +29,35 @@ class WatchedAndFavoritesPresenter {
     
     func getMovies() {
         if presenterType == .watched {
-            self.movies = CoreDataHelper.fetchWatchedMovies()
+            self.moviesRepresentable = CoreDataHelper.fetchWatchedMovies()
         } else {
-            self.movies = CoreDataHelper.fetchFavouriteMovies()
+            self.moviesRepresentable = CoreDataHelper.fetchFavouriteMovies()
         }
         delegate.reloadScreenData()
     }
     
+    func updateFavourite(for movieRepresentable: MovieRepresentable) {
+        for movie in moviesRepresentable {
+            if movie.id == movieRepresentable.id {
+                movie.favourite = !movie.favourite
+            }
+        }
+    
+        CoreDataHelper.updateFavourite(withId: movieRepresentable.id, movieRepresentable.favourite)
+    
+        delegate.reloadScreenData()
+    }
+    
+    func updateWatched(for movieRepresentable: MovieRepresentable) {
+        for movie in moviesRepresentable {
+            if movie.id == movieRepresentable.id {
+                movie.watched = !movie.watched
+            }
+        }
+    
+        CoreDataHelper.updateWatched(withId: movieRepresentable.id, movieRepresentable.watched)
+    
+        delegate.reloadScreenData()
+    }
+
 }

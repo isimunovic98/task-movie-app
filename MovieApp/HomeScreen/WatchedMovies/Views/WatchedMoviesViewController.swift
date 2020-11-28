@@ -79,6 +79,12 @@ extension WatchedMoviesViewController: WatchedAndFavouritesDelegate {
     }
 }
 
+extension WatchedMoviesViewController: WatchedCellDelegate {
+    func onWatchedButtonTapped(for movieRepresentable: MovieRepresentable) {
+        presenter.updateWatched(for: movieRepresentable)
+    }
+}
+
 
 //MARK: - TableViewDelegate
 extension WatchedMoviesViewController: UITableViewDelegate, UITableViewDataSource {
@@ -86,14 +92,16 @@ extension WatchedMoviesViewController: UITableViewDelegate, UITableViewDataSourc
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell: WatchedFavouriteCell = tableView.dequeue(for: indexPath)
         
-        let movie = presenter.movies[indexPath.section]
+        let movie = presenter.moviesRepresentable[indexPath.section]
         
+        cell.watchedDelegate = self
         cell.configure(withMovie: movie, ofType: WatchedMoviesViewController.reuseIdentifier)
+        
         return cell
     }
     
     func numberOfSections(in tableView: UITableView) -> Int {
-        return presenter.movies.count
+        return presenter.moviesRepresentable.count
     }
     
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
@@ -115,10 +123,10 @@ extension WatchedMoviesViewController: UITableViewDelegate, UITableViewDataSourc
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let id = Int(presenter.movies[indexPath.section].id)
+        let id = presenter.moviesRepresentable[indexPath.section].id
         
-        let presenter = MovieDetailsPresenter()
-        let movieDetailsController = MovieDetailsViewController(presenter: presenter, movieId: id)
+        let presenter = MovieDetailsPresenter(id)
+        let movieDetailsController = MovieDetailsViewController(presenter: presenter)
         presenter.delegate = movieDetailsController
 
         
