@@ -9,9 +9,7 @@ import UIKit
 class FavouriteListViewController: UIViewController, ReusableView {
     
     //MARK: Properties
-    let coreDataHelper = CoreDataHelper()
-    
-    var movies = [MovieEntity]()
+    var moviesRepresentable = [MovieRepresentable]()
     
     let favouriteMoviesTableView: UITableView = {
         let tableView = UITableView()
@@ -66,7 +64,7 @@ extension FavouriteListViewController {
 //MARK: - Methods
 extension FavouriteListViewController {
     func fetchData() {
-        self.movies = CoreDataHelper.fetchFavouriteMovies()
+        self.moviesRepresentable = CoreDataHelper.fetchFavouriteMovies()
         
         favouriteMoviesTableView.reloadData()
     }
@@ -78,14 +76,14 @@ extension FavouriteListViewController: UITableViewDelegate, UITableViewDataSourc
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell: WatchedFavouriteCell = tableView.dequeue(for: indexPath)
         
-        let movie = movies[indexPath.section]
+        let movieRepresentable = moviesRepresentable[indexPath.section]
         
-        cell.configure(withMovie: movie, forType: FavouriteListViewController.reuseIdentifier)
+        cell.configure(withMovieRepresentable: movieRepresentable, forType: FavouriteListViewController.reuseIdentifier)
         return cell
     }
     
     func numberOfSections(in tableView: UITableView) -> Int {
-        return self.movies.count
+        return self.moviesRepresentable.count
     }
     
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
@@ -107,7 +105,7 @@ extension FavouriteListViewController: UITableViewDelegate, UITableViewDataSourc
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let id = Int(movies[indexPath.section].id)
+        let id = moviesRepresentable[indexPath.section].id
         
         let movieDetailsController = MovieDetailsViewController(movieId: id)
         

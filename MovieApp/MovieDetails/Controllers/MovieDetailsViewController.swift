@@ -15,9 +15,7 @@ class MovieDetailsViewController: UIViewController {
     
     //MARK: Properties
     var id: Int
-    var watched = false
-    var favourite = false
-    var movieDetails: MovieDetails?
+    var movieRepresentable: MovieRepresentable?
     var rowItems = [RowItem<Any, MovieDetailsCellTypes>]()
     
     let movieDetailsTableView: UITableView = {
@@ -121,20 +119,29 @@ extension MovieDetailsViewController {
         showBlurLoader()
         APIService.fetch(from: MovieDetailsViewController.response + String(self.id) + MovieDetailsViewController.apiKey, of: MovieDetails.self) { (movieDetails, message) in
             guard let movieDetails = movieDetails else { return }
-            self.movieDetails = movieDetails
-            self.createScreenData(from: movieDetails)
+            self.movieRepresentable = MovieRepresentable(movieDetails)
+            self.createScreenData(from: self.movieRepresentable)
             self.movieDetailsTableView.reloadData()
             self.removeBlurLoader()
-        
         }
     }
     
-    func createScreenData(from details: MovieDetails) {
-        rowItems.append(RowItem(content: details.posterPath , type: .poster))
-        rowItems.append(RowItem(content: details.title , type: .title))
-        rowItems.append(RowItem(content: details.genres , type: .genres))
-        rowItems.append(RowItem(content: details.tagline , type: .quote))
-        rowItems.append(RowItem(content: details.overview , type: .overview))
+    func createScreenData(from movieRepresentable: MovieRepresentable?) {
+        guard let movieRepresentable = movieRepresentable else { return }
+        rowItems.append(RowItem(content: movieRepresentable.posterPath , type: .poster))
+        rowItems.append(RowItem(content: movieRepresentable.title , type: .title))
+        if let genres = movieRepresentable.genres {
+            rowItems.append(RowItem(content: genres , type: .genres))
+        }
+        if let tagline = movieRepresentable.tagline {
+            rowItems.append(RowItem(content: tagline , type: .quote))
+        }
+        rowItems.append(RowItem(content: movieRepresentable.overview , type: .overview))
+        
+        if let movie = MovieEntity.findByID(id) {
+            self.movieRepresentable?.watched = movie.watched
+            self.movieRepresentable?.favourite = movie.favourite
+         }
     }
     
     fileprivate func setupButtonActions() {
@@ -144,26 +151,27 @@ extension MovieDetailsViewController {
     }
     
     func setButtonStates() {
-        if let appMovie = MovieEntity.findByID( Int64(id) ) {
-            watched = appMovie.watched
-            favourite = appMovie.favourite
-            watchedButton.isSelected = watched
-            favouritesButton.isSelected = favourite
+        if let movieRepresentable = movieRepresentable {
+            watchedButton.isSelected = movieRepresentable.watched
+            favouritesButton.isSelected = movieRepresentable.favourite
         }
     }
     
     //MARK: Actions
     @objc func watchedButtonTapped() {
-        watched = !watched
-        watchedButton.isSelected = watched
-        CoreDataHelper.saveOrUpdate(movieDetails!, watched, favourite)
-        
+        if let movieRepresentable = movieRepresentable {
+            movieRepresentable.watched = !movieRepresentable.watched
+            watchedButton.isSelected = movieRepresentable.watched
+            CoreDataHelper.saveOrUpdate(movieRepresentable)
+        }
     }
     
     @objc func favouriteButtonTapped() {
-        favourite = !favourite
-        favouritesButton.isSelected = favourite
-        CoreDataHelper.saveOrUpdate(movieDetails!, watched, favourite)
+        if let movieRepresentable = movieRepresentable {
+            movieRepresentable.favourite = !movieRepresentable.favourite
+            favouritesButton.isSelected = movieRepresentable.favourite
+            CoreDataHelper.saveOrUpdate(movieRepresentable)
+        }
     }
     
     @objc func goBack() {

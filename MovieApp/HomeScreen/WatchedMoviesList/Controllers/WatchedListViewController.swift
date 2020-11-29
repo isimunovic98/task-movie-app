@@ -10,7 +10,7 @@ import UIKit
 class WatchedListViewController: UIViewController, ReusableView {
     
     //MARK: Properties
-    var movies = [MovieEntity]()
+    var moviesRepresentable = [MovieRepresentable]()
     
     let watchedMoviesTableView: UITableView = {
         let tableView = UITableView()
@@ -66,7 +66,7 @@ extension WatchedListViewController {
 //MARK: - Methods
 extension WatchedListViewController {
     func fetchData() {
-        self.movies = CoreDataHelper.fetchWatchedMovies()
+        self.moviesRepresentable = CoreDataHelper.fetchWatchedMovies()
         
         watchedMoviesTableView.reloadData()
     }
@@ -79,14 +79,14 @@ extension WatchedListViewController: UITableViewDelegate, UITableViewDataSource 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell: WatchedFavouriteCell = tableView.dequeue(for: indexPath)
         
-        let movie = movies[indexPath.section]
+        let movieRepresentable = moviesRepresentable[indexPath.section]
         
-        cell.configure(withMovie: movie, forType: WatchedListViewController.reuseIdentifier)
+        cell.configure(withMovieRepresentable: movieRepresentable, forType: WatchedListViewController.reuseIdentifier)
         return cell
     }
     
     func numberOfSections(in tableView: UITableView) -> Int {
-        return self.movies.count
+        return self.moviesRepresentable.count
     }
     
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
@@ -108,7 +108,7 @@ extension WatchedListViewController: UITableViewDelegate, UITableViewDataSource 
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let id = Int(movies[indexPath.section].id)
+        let id = moviesRepresentable[indexPath.section].id
         
         let movieDetailsController = MovieDetailsViewController(movieId: id)
         

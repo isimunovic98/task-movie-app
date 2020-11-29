@@ -12,11 +12,12 @@ import CoreData
 @objc(MovieEntity)
 public class MovieEntity: NSManagedObject {
 
-    class func findByID(_ movieId: Int64) -> MovieEntity? {
+    class func findByID(_ movieId: Int) -> MovieEntity? {
+        let id = Int64(movieId)
         let myAppDelegate = UIApplication.shared.delegate as! AppDelegate
         let context = myAppDelegate.persistentContainer.viewContext
         let request = NSFetchRequest<NSFetchRequestResult>(entityName: "MovieEntity")
-        let idPredicate = NSPredicate(format: "id = \(movieId)")
+        let idPredicate = NSPredicate(format: "id = \(id)")
         request.predicate = idPredicate
         
         var result: [AnyObject]?

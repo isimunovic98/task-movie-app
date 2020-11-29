@@ -10,7 +10,7 @@ import UIKit
 class NowPlayingListViewController: UIViewController {
         
     //MARK: Properties
-    var movies = [Movie]()
+    var moviesRepresentable = [MovieRepresentable]()
     
     lazy var nowPlayingCollectionView: UICollectionView = {
         let collectionView = UICollectionView(frame: self.view.frame, collectionViewLayout: UICollectionViewFlowLayout())
@@ -84,11 +84,29 @@ extension NowPlayingListViewController {
         }
         APIService.fetch(from: Constants.ALL_MOVIES_URL, of: Movies.self) { (movies, message) in
             guard let movies = movies?.results else { return }
-            self.movies = movies
+            self.moviesRepresentable = self.createMovieRepresentable(from: movies)
             self.nowPlayingCollectionView.reloadData()
-            self.removeBlurLoader()
             self.refreshControl.endRefreshing()
         }
+        
+        if showLoader {
+            self.removeBlurLoader()
+        }
+    }
+    
+    private func createMovieRepresentable(from movies: [Movie]) -> [MovieRepresentable] {
+        var moviesTemp = [MovieRepresentable]()
+        for movie in movies {
+            if let movieEntity = MovieEntity.findByID(movie.id) {
+                let movieRepresentable = MovieRepresentable(movieEntity)
+                moviesTemp.append(movieRepresentable)
+            } else {
+                let movieRepresentable = MovieRepresentable(movie)
+                moviesTemp.append(movieRepresentable)
+            }
+        }
+        
+        return moviesTemp
     }
     
     func configureCollectionView() {
@@ -102,7 +120,7 @@ extension NowPlayingListViewController {
 //MARK: - CollectionViewDelegate
 extension NowPlayingListViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        let id = movies[indexPath.row].id
+        let id = moviesRepresentable[indexPath.row].id
         
         let movieDetailsController = MovieDetailsViewController(movieId: id)
         
@@ -113,13 +131,13 @@ extension NowPlayingListViewController: UICollectionViewDelegate {
 //MARK: - CollectionViewDataSource
 extension NowPlayingListViewController: UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return movies.count
+        return moviesRepresentable.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell: NowPlayingCollectionCell = collectionView.dequeue(for: indexPath)
     
-        cell.configure(withMovie: movies[indexPath.row])
+        cell.configure(withMovieRepresentable: moviesRepresentable[indexPath.row])
         
         return cell
     }
