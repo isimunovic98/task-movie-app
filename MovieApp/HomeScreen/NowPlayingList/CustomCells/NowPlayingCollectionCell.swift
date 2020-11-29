@@ -145,8 +145,8 @@ extension NowPlayingCollectionCell {
 extension NowPlayingCollectionCell {
     func configure(withMovie movie: Movie) {
         self.movie = movie
-        self.moviePosterImageView.setImageFromUrl(Constants.IMAGE_BASE_PATH + movie.poster_path)
-        yearOfReleaseLabel.text = movie.release_date.extractYear
+        self.moviePosterImageView.setImageFromUrl(Constants.IMAGE_BASE_PATH + movie.posterPath)
+        yearOfReleaseLabel.text = movie.releaseDate.extractYear
         movieTitleLabel.text = movie.title
         movieOverviewLabel.text = movie.overview
         setButtonStates()

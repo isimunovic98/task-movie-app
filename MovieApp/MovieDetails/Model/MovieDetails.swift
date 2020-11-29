@@ -12,12 +12,23 @@ struct Genre: Codable {
     var name: String 
 }
 
-class MovieDetails: Codable {
-    var id: Int
-    var genres: [Genre]
-    var poster_path: String
-    var title: String
-    var overview: String
-    var tagline: String
-    var release_date: String
+struct MovieDetails: Codable {
+     var id: Int
+     var title: String
+     var overview: String
+     var posterPath: String
+     var releaseDate: String
+     var genres: [Genre]
+     var tagline: String
+
+
+     enum CodingKeys: String, CodingKey {
+         case id
+         case title
+         case overview
+         case posterPath = "poster_path"
+         case releaseDate = "release_date"
+         case genres
+         case tagline
+     }
 }

@@ -10,7 +10,6 @@ import UIKit
 class NowPlayingListViewController: UIViewController {
         
     //MARK: Properties
-    let service = APIService()
     var movies = [Movie]()
     
     lazy var nowPlayingCollectionView: UICollectionView = {
@@ -83,14 +82,12 @@ extension NowPlayingListViewController {
         if showLoader {
             showBlurLoader()
         }
-        service.fetch(from: Constants.ALL_MOVIES_URL, of: Movies.self) { (movies, status, message) in
-            if status {
-                guard let _movies = movies else { return }
-                self.movies = _movies.results
-                self.nowPlayingCollectionView.reloadData()
-                self.removeBlurLoader()
-                self.refreshControl.endRefreshing()
-            }
+        APIService.fetch(from: Constants.ALL_MOVIES_URL, of: Movies.self) { (movies, message) in
+            guard let movies = movies?.results else { return }
+            self.movies = movies
+            self.nowPlayingCollectionView.reloadData()
+            self.removeBlurLoader()
+            self.refreshControl.endRefreshing()
         }
     }
     

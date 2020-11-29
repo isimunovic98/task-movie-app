@@ -19,7 +19,6 @@ class MovieDetailsViewController: UIViewController {
     var favourite = false
     var movieDetails: MovieDetails?
     var rowItems = [RowItem<Any, MovieDetailsCellTypes>]()
-    let service = APIService()
     
     let movieDetailsTableView: UITableView = {
         let tableView = UITableView()
@@ -120,19 +119,18 @@ extension MovieDetailsViewController {
     
     fileprivate func populateTableView() {
         showBlurLoader()
-        service.fetch(from: MovieDetailsViewController.response + String(self.id) + MovieDetailsViewController.apiKey, of: MovieDetails.self) { (movieDetails, status, message) in
-            if status {
-                guard let _movieDetails = movieDetails else { return }
-                self.movieDetails = _movieDetails
-                self.createScreenData(from: _movieDetails)
-                self.movieDetailsTableView.reloadData()
-                self.removeBlurLoader()
-            }
+        APIService.fetch(from: MovieDetailsViewController.response + String(self.id) + MovieDetailsViewController.apiKey, of: MovieDetails.self) { (movieDetails, message) in
+            guard let movieDetails = movieDetails else { return }
+            self.movieDetails = movieDetails
+            self.createScreenData(from: movieDetails)
+            self.movieDetailsTableView.reloadData()
+            self.removeBlurLoader()
+        
         }
     }
     
     func createScreenData(from details: MovieDetails) {
-        rowItems.append(RowItem(content: details.poster_path , type: .poster))
+        rowItems.append(RowItem(content: details.posterPath , type: .poster))
         rowItems.append(RowItem(content: details.title , type: .title))
         rowItems.append(RowItem(content: details.genres , type: .genres))
         rowItems.append(RowItem(content: details.tagline , type: .quote))

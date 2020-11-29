@@ -27,8 +27,8 @@ class CoreDataHelper {
         newAppMovie.id = Int64(movie.id)
         newAppMovie.title = movie.title
         newAppMovie.overview = movie.overview
-        newAppMovie.posterPath = movie.poster_path
-        newAppMovie.releaseDate = movie.release_date
+        newAppMovie.posterPath = movie.posterPath
+        newAppMovie.releaseDate = movie.releaseDate
         
         return newAppMovie
     }
@@ -38,8 +38,8 @@ class CoreDataHelper {
         newAppMovie.id = Int64(movie.id)
         newAppMovie.title = movie.title
         newAppMovie.overview = movie.overview
-        newAppMovie.posterPath = movie.poster_path
-        newAppMovie.releaseDate = movie.release_date
+        newAppMovie.posterPath = movie.posterPath
+        newAppMovie.releaseDate = movie.releaseDate
         
         return newAppMovie
     }
