@@ -9,17 +9,9 @@ import UIKit
 import SnapKit
 
 class MovieDetailsViewController: UIViewController {
-    
-    static var response: String = "https://api.themoviedb.org/3/movie/"
-    static var apiKey: String = "?api_key=aaf38b3909a4f117db3fb67e13ac6ef7&language=en-US"
-    
+        
     //MARK: Properties
-    var id: Int
-    var watched = false
-    var favourite = false
-    var movieDetails: MovieDetails?
-    var rowItems = [RowItem<Any, MovieDetailsCellTypes>]()
-    let service = APIService()
+    var presenter: MovieDetailsPresenter
     
     let movieDetailsTableView: UITableView = {
         let tableView = UITableView()
@@ -29,7 +21,7 @@ class MovieDetailsViewController: UIViewController {
         tableView.allowsSelection = false
         return tableView
     }()
-        
+    
     let backButton: UIButton = {
         let button = UIButton()
         button.translatesAutoresizingMaskIntoConstraints = false
@@ -53,18 +45,19 @@ class MovieDetailsViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
+        presenter.makeMovieDetailsRepresentable()
     }
     
     //MARK: Init
-    init(movieId id: Int) {
-        self.id = id
+    init(presenter: MovieDetailsPresenter) {
+        self.presenter = presenter
         super.init(nibName: nil, bundle: nil)
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-
+    
 }
 
 //MARK: - UI
@@ -78,15 +71,13 @@ extension MovieDetailsViewController {
         addSubviews()
         setupConstraints()
         configureTableView()
-        populateTableView()
         setupButtonActions()
-        setButtonStates()
     }
     
     fileprivate func setupConstraints() {
         
         movieDetailsTableView.snp.makeConstraints { (make) in
-            make.top.leading.trailing.bottom.equalTo(view.safeAreaLayoutGuide)
+            make.edges.equalTo(view.safeAreaLayoutGuide)
         }
         
         backButton.snp.makeConstraints { (make) in
@@ -117,55 +108,25 @@ extension MovieDetailsViewController {
         view.addSubview(favouritesButton)
         view.addSubview(watchedButton)
     }
-    
-    fileprivate func populateTableView() {
-        showBlurLoader()
-        service.fetch(from: MovieDetailsViewController.response + String(self.id) + MovieDetailsViewController.apiKey, of: MovieDetails.self) { (movieDetails, status, message) in
-            if status {
-                guard let _movieDetails = movieDetails else { return }
-                self.movieDetails = _movieDetails
-                self.createScreenData(from: _movieDetails)
-                self.movieDetailsTableView.reloadData()
-                self.removeBlurLoader()
-            }
-        }
-    }
-    
-    func createScreenData(from details: MovieDetails) {
-        rowItems.append(RowItem(content: details.poster_path , type: .poster))
-        rowItems.append(RowItem(content: details.title , type: .title))
-        rowItems.append(RowItem(content: details.genres , type: .genres))
-        rowItems.append(RowItem(content: details.tagline , type: .quote))
-        rowItems.append(RowItem(content: details.overview , type: .overview))
-    }
-    
+        
     fileprivate func setupButtonActions() {
         backButton.addTarget(self, action: #selector(goBack), for: .touchUpInside)
         watchedButton.addTarget(self, action: #selector(watchedButtonTapped), for: .touchUpInside)
         favouritesButton.addTarget(self, action: #selector(favouriteButtonTapped), for: .touchUpInside)
     }
     
-    func setButtonStates() {
-        if let appMovie = MovieEntity.findByID( Int64(id) ) {
-            watched = appMovie.watched
-            favourite = appMovie.favourite
-            watchedButton.isSelected = watched
-            favouritesButton.isSelected = favourite
-        }
+    fileprivate func setupButtons(using infoItem: InfoItem) {
+        watchedButton.isSelected = infoItem.watched
+        favouritesButton.isSelected = infoItem.favourited
     }
     
     //MARK: Actions
     @objc func watchedButtonTapped() {
-        watched = !watched
-        watchedButton.isSelected = watched
-        CoreDataHelper.saveOrUpdate(movieDetails!, watched, favourite)
-        
+        presenter.changeWatchedButtonState()
     }
     
     @objc func favouriteButtonTapped() {
-        favourite = !favourite
-        favouritesButton.isSelected = favourite
-        CoreDataHelper.saveOrUpdate(movieDetails!, watched, favourite)
+        presenter.changeFavouriteButtonState()
     }
     
     @objc func goBack() {
@@ -173,30 +134,53 @@ extension MovieDetailsViewController {
     }
 }
 
+extension MovieDetailsViewController: MovieDetailsDelegate {
+    func loading(_ shouldShowLoader: Bool){
+        if shouldShowLoader {
+            showBlurLoader()
+        } else {
+            removeBlurLoader()
+        }
+    }
+    
+    func reloadScreenData() {
+        movieDetailsTableView.reloadData()
+    }
+    
+    func presentJsonError(_ message: String) {
+        presentJSONErrorAlert(message)
+    }
+}
+
 //MARK: - TableViewDelegate
 extension MovieDetailsViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return rowItems.count
+        return presenter.rowItems.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
-        let itemType = rowItems[indexPath.row].type
+        let itemType = presenter.rowItems[indexPath.row].type
         
         switch itemType {
         
         case .poster:
             let cell: MoviePosterCell = tableView.dequeue(for: indexPath)
             
-            let imageUrl = rowItems[indexPath.row].content
-            cell.setMoviePoster(from: imageUrl as! String)
+            if let infoItem = presenter.rowItems[indexPath.row].content as? InfoItem {
+                let imageUrl = infoItem.posterPath
+                cell.setMoviePoster(from: imageUrl)
+                setupButtons(using: infoItem)
+            } else {
+                return UITableViewCell()
+            }
             
             return cell
             
         case .title:
             let cell: MovieTitleCell = tableView.dequeue(for: indexPath)
             
-            let title = rowItems[indexPath.row].content
+            let title = presenter.rowItems[indexPath.row].content
             cell.setMovieTitle(title: title as! String)
             
             return cell
@@ -204,7 +188,7 @@ extension MovieDetailsViewController: UITableViewDelegate, UITableViewDataSource
         case .genres:
             let cell: MovieGenresCell = tableView.dequeue(for: indexPath)
             
-            let genres = rowItems[indexPath.row].content
+            let genres = presenter.rowItems[indexPath.row].content
             cell.setMovieGenres(genres: genres as! [Genre])
             
             return cell
@@ -212,7 +196,7 @@ extension MovieDetailsViewController: UITableViewDelegate, UITableViewDataSource
         case .quote:
             let cell: MovieQuoteCell = tableView.dequeue(for: indexPath)
             
-            let quote = rowItems[indexPath.row].content
+            let quote = presenter.rowItems[indexPath.row].content
             cell.setMovieQuote(quote: quote as! String)
             
             return cell
@@ -220,7 +204,7 @@ extension MovieDetailsViewController: UITableViewDelegate, UITableViewDataSource
         case .overview:
             let cell: MovieOverviewCell = tableView.dequeue(for: indexPath)
             
-            let overview = rowItems[indexPath.row].content
+            let overview = presenter.rowItems[indexPath.row].content
             cell.setMovieOverview(overview: overview as! String)
             
             return cell
@@ -241,6 +225,5 @@ extension MovieDetailsViewController: UITableViewDelegate, UITableViewDataSource
         movieDetailsTableView.delegate = self
         movieDetailsTableView.dataSource = self
     }
-    
     
 }

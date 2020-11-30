@@ -10,19 +10,19 @@ import Alamofire
 
 class APIService {
     
-    func fetch<T: Codable>(from url: String, of: T.Type,using completion: @escaping (_ data: T?,_ status: Bool,_ message: String) -> Void) {
+    static func fetch<T: Codable>(from url: String, of: T.Type,using completion: @escaping (_ data: T?,_ message: String) -> Void) {
         AF.request(url).validate().responseData { (response) in
             guard let data = response.data else {
-                completion(nil, false, "")
+                completion(nil, "")
                 return
                 }
             do {
                 let decodedObject: T = try JSONDecoder().decode(T.self, from: data)
-                completion(decodedObject, true, "")
+                completion(decodedObject, "")
             } catch {
-                completion(nil, false, error.localizedDescription)            }
-           }
+                completion(nil, error.localizedDescription)
+            }
+        }
     }
-
 }
 

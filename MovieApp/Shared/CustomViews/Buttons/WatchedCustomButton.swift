@@ -8,7 +8,7 @@
 import UIKit
 
 class WatchedCustomButton: UIButton {
-
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
         self.setImage(UIImage(named: "watchedEmpty"), for: .normal)

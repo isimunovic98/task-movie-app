@@ -15,8 +15,8 @@ extension UIViewController {
         self.present(alert, animated: false, completion: nil)
     }
     
-    func presentJSONErrorAlert() {
-        let alert = UIAlertController(title: "Error", message: "Error occured!", preferredStyle: .alert)
+    func presentJSONErrorAlert(_ message: String?) {
+        let alert = UIAlertController(title: "Error", message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .cancel, handler: nil))
         self.present(alert, animated: false, completion: nil)
     }

@@ -15,19 +15,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
     
-        let nowPlayingVC = NowPlayingListViewController()
-        nowPlayingVC.tabBarItem.image = UIImage(named: "home")
-        
-        let watchedListVC = WatchedListViewController()
-        watchedListVC.tabBarItem.image = UIImage(named: "watched")
-        
-        let favouriteListVC = FavouriteListViewController()
-        favouriteListVC.tabBarItem.image = UIImage(named: "favourite")
-        
-        let tabBarController = UITabBarController()
-        tabBarController.viewControllers = [nowPlayingVC, watchedListVC, favouriteListVC]
-        
-        let navigationController = UINavigationController(rootViewController: tabBarController)
+        let navigationController = UINavigationController(rootViewController: HomeScreenViewController())
         navigationController.setNavigationBarHidden(true, animated: false)
         
         window = UIWindow(frame: UIScreen.main.bounds)

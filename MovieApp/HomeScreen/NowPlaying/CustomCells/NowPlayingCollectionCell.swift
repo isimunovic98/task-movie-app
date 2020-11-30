@@ -7,13 +7,16 @@
 
 import UIKit
 
+protocol NowPlayingCellDelegate: class {
+    func onWatchedTapped(for movieRepresentable: MovieRepresentable)
+    func onFavouritesTapped(for movieRepresentable: MovieRepresentable)
+}
 class NowPlayingCollectionCell: UICollectionViewCell {
     
     //MARK: Properties
-    var movie: Movie?
-
-    var favourite: Bool = false
-    var watched: Bool = false
+    var movieRepresentable: MovieRepresentable?
+    
+    weak var cellDelegate: NowPlayingCellDelegate?
     
     let moviePosterImageView: UIImageView = {
         let imageView = UIImageView()
@@ -113,7 +116,7 @@ extension NowPlayingCollectionCell {
         }
 
         gradientLayer.snp.makeConstraints { (make) in
-            make.top.leading.trailing.bottom.equalTo(moviePosterImageView)
+            make.edges.equalTo(moviePosterImageView)
         }
         
         movieTitleLabel.snp.makeConstraints { (make) in
@@ -143,43 +146,33 @@ extension NowPlayingCollectionCell {
 
 //MARK: - Methods
 extension NowPlayingCollectionCell {
-    func configure(withMovie movie: Movie) {
-        self.movie = movie
-        self.moviePosterImageView.setImageFromUrl(Constants.IMAGE_BASE_PATH + movie.poster_path)
-        yearOfReleaseLabel.text = movie.release_date.extractYear
+    func configure(withMovie movie: MovieRepresentable) {
+        self.movieRepresentable = movie
+        self.moviePosterImageView.setImageFromUrl(Constants.IMAGE_BASE_PATH + movie.posterPath)
+        yearOfReleaseLabel.text = movie.releaseDate.extractYear
         movieTitleLabel.text = movie.title
         movieOverviewLabel.text = movie.overview
-        setButtonStates()
+        watchedButton.isSelected = movie.watched
+        favouritesButton.isSelected = movie.favourite
     }
     
     fileprivate func setupButtonActions() {
         watchedButton.addTarget(self, action: #selector(watchedButtonTapped), for: .touchUpInside)
         favouritesButton.addTarget(self, action: #selector(favouriteButtonTapped), for: .touchUpInside)
     }
-    
-    func setButtonStates() {
-        if let movie = MovieEntity.findByID(Int64(movie!.id)) {
-            watched = movie.watched
-            favourite = movie.favourite
-            watchedButton.isSelected = watched
-            favouritesButton.isSelected = favourite
-        } else {
-            watchedButton.isSelected = false
-            watchedButton.isSelected = false
-        }
-    }
-    
+        
     //MARK: Actions
     @objc func watchedButtonTapped() {
-        watched = !watched
-        watchedButton.isSelected = watched
-        CoreDataHelper.saveOrUpdate(movie!, watched, favourite)
+        guard let movieRepresentable = movieRepresentable else {
+            return
+        }
+        cellDelegate?.onWatchedTapped(for: movieRepresentable)
     }
     
     @objc func favouriteButtonTapped() {
-        favourite = !favourite
-        favouritesButton.isSelected = favourite
-        CoreDataHelper.saveOrUpdate(movie!, watched, favourite)
+        guard let movieRepresentable = movieRepresentable else {
+            return
+        }
+        cellDelegate?.onFavouritesTapped(for: movieRepresentable)
     }
 }
-
