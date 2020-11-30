@@ -115,6 +115,11 @@ extension MovieDetailsViewController {
         favouritesButton.addTarget(self, action: #selector(favouriteButtonTapped), for: .touchUpInside)
     }
     
+    fileprivate func setupButtons(using infoItem: InfoItem) {
+        watchedButton.isSelected = infoItem.watched
+        favouritesButton.isSelected = infoItem.favourited
+    }
+    
     //MARK: Actions
     @objc func watchedButtonTapped() {
         presenter.changeWatchedButtonState()
@@ -130,11 +135,6 @@ extension MovieDetailsViewController {
 }
 
 extension MovieDetailsViewController: MovieDetailsDelegate {
-    func setStatusOfButtons(for movieRepresenable: MovieRepresentable) {
-        watchedButton.isSelected = movieRepresenable.watched
-        favouritesButton.isSelected = movieRepresenable.favourite
-    }
-
     func loading(_ shouldShowLoader: Bool){
         if shouldShowLoader {
             showBlurLoader()
@@ -145,6 +145,10 @@ extension MovieDetailsViewController: MovieDetailsDelegate {
     
     func reloadScreenData() {
         movieDetailsTableView.reloadData()
+    }
+    
+    func presentJsonError(_ message: String) {
+        presentJSONErrorAlert(message)
     }
 }
 
@@ -163,8 +167,13 @@ extension MovieDetailsViewController: UITableViewDelegate, UITableViewDataSource
         case .poster:
             let cell: MoviePosterCell = tableView.dequeue(for: indexPath)
             
-            let imageUrl = presenter.rowItems[indexPath.row].content
-            cell.setMoviePoster(from: imageUrl as! String)
+            if let infoItem = presenter.rowItems[indexPath.row].content as? InfoItem {
+                let imageUrl = infoItem.posterPath
+                cell.setMoviePoster(from: imageUrl)
+                setupButtons(using: infoItem)
+            } else {
+                return UITableViewCell()
+            }
             
             return cell
             

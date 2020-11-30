@@ -79,12 +79,11 @@ extension WatchedMoviesViewController: WatchedAndFavouritesDelegate {
     }
 }
 
-extension WatchedMoviesViewController: WatchedCellDelegate {
-    func onWatchedButtonTapped(for movieRepresentable: MovieRepresentable) {
-        presenter.updateWatched(for: movieRepresentable)
+extension WatchedMoviesViewController: CellDelegate {
+    func onButtonTapped(ofType type: ButtonType, ofId id: Int) {
+        presenter.updateButton(ofType: type, ofId: id)
     }
 }
-
 
 //MARK: - TableViewDelegate
 extension WatchedMoviesViewController: UITableViewDelegate, UITableViewDataSource {
@@ -94,7 +93,7 @@ extension WatchedMoviesViewController: UITableViewDelegate, UITableViewDataSourc
         
         let movie = presenter.moviesRepresentable[indexPath.section]
         
-        cell.watchedDelegate = self
+        cell.delegate = self
         cell.configure(withMovie: movie, ofType: WatchedMoviesViewController.reuseIdentifier)
         
         return cell

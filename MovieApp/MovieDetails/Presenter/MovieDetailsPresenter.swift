@@ -10,15 +10,14 @@ import Foundation
 protocol MovieDetailsDelegate: class {
     func reloadScreenData()
     func loading(_ shouldShowLoader: Bool)
-    func setStatusOfButtons(for movieRepresentable: MovieRepresentable)
+    func presentJsonError(_ message: String)
 }
 
 class MovieDetailsPresenter {
     var delegate: MovieDetailsDelegate!
     
     var id: Int
-    var movieRepresentable: MovieRepresentable?
-    var rowItems = [RowItem]()
+    var rowItems: [RowItem] = []
     
     init(_ id: Int) {
         self.id = id
@@ -27,44 +26,51 @@ class MovieDetailsPresenter {
     func makeMovieDetailsRepresentable() {
         delegate.loading(true)
         APIService.fetch(from: Constants.MovieDetails.response + String(id) + Constants.MovieDetails.apiKey, of: MovieDetails.self) { (movieDetails, message) in
-            guard let movieDetails = movieDetails else { return }
-            self.movieRepresentable = MovieRepresentable(movieDetails)
-            self.createScreenData(from: self.movieRepresentable)
+            guard let movieDetails = movieDetails else {
+                self.delegate.presentJsonError(message)
+                return
+            }
+            self.rowItems = self.createScreenData(from: movieDetails)
             self.delegate.loading(false)
+            self.delegate.reloadScreenData()
         }
     }
     
-    func createScreenData(from movieRepresentable: MovieRepresentable?) {
-        guard let movieRepresentable = movieRepresentable else { return }
-        rowItems.append(RowItem(content: movieRepresentable.posterPath , type: .poster))
-        rowItems.append(RowItem(content: movieRepresentable.title , type: .title))
-        rowItems.append(RowItem(content: movieRepresentable.genres!, type: .genres))
-        rowItems.append(RowItem(content: movieRepresentable.tagline!, type: .quote))
-        rowItems.append(RowItem(content: movieRepresentable.overview , type: .overview))
-        
-        if let movie = MovieEntity.findByID(id) {
-            movieRepresentable.watched = movie.watched
-            movieRepresentable.favourite = movie.favourite
-        }
-        
-        delegate.setStatusOfButtons(for: movieRepresentable)
-        delegate.reloadScreenData()
+    func createScreenData(from movieDetails: MovieDetails) -> [RowItem] {
+        var rowItems = [RowItem]()
+        rowItems.append(createInfoItem(for: id, with: movieDetails.posterPath))
+        rowItems.append(RowItem(content: movieDetails.title , type: .title))
+        rowItems.append(RowItem(content: movieDetails.genres, type: .genres))
+        rowItems.append(RowItem(content: movieDetails.tagline, type: .quote))
+        rowItems.append(RowItem(content: movieDetails.overview , type: .overview))
+
+        return rowItems
     }
     
+    func createInfoItem(for id: Int, with posterPath: String) -> RowItem {
+        let dbMoview = MovieEntity.findByID(id)
+        return RowItem(content: InfoItem(posterPath: posterPath, watched: dbMoview?.watched ?? false, favourited: dbMoview?.favourite ?? false) , type: .poster)
+        
+    }
 
     func changeWatchedButtonState() {
-        if let movieRepresentable = movieRepresentable {
-            movieRepresentable.watched = !movieRepresentable.watched
-            delegate.setStatusOfButtons(for: movieRepresentable)
-            CoreDataHelper.saveOrUpdate(movieRepresentable)
+        for item in rowItems {
+            if let infoItem = item.content as? InfoItem {
+                let newState = !infoItem.watched
+                CoreDataHelper.updateWatched(withId: id, newState)
+            }
         }
+        makeMovieDetailsRepresentable()
     }
     
     func changeFavouriteButtonState() {
-        if let movieRepresentable = movieRepresentable {
-            movieRepresentable.favourite = !movieRepresentable.favourite
-            delegate.setStatusOfButtons(for: movieRepresentable)
-            CoreDataHelper.saveOrUpdate(movieRepresentable)
+        for item in rowItems {
+            if let infoItem = item.content as? InfoItem {
+                let newState = !infoItem.favourited
+                CoreDataHelper.updateFavourite(withId: id, newState)
+                delegate.reloadScreenData()
+            }
         }
+        makeMovieDetailsRepresentable()
     }
 }

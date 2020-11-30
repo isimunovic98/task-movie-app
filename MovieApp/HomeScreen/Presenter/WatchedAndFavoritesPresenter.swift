@@ -36,26 +36,36 @@ class WatchedAndFavoritesPresenter {
         delegate.reloadScreenData()
     }
     
-    func updateFavourite(for movieRepresentable: MovieRepresentable) {
-        for movie in moviesRepresentable {
-            if movie.id == movieRepresentable.id {
-                movie.favourite = !movie.favourite
+    func updateButton(ofType type: ButtonType, ofId id: Int) {
+        var indexOfMovie: Int?
+        
+        for (index, movie) in moviesRepresentable.enumerated() {
+            if movie.id == id {
+                indexOfMovie = index
             }
         }
+        
+        guard let indexToUpdate = indexOfMovie else { return }
+        if type == .watch {
+            updateWatched(at: indexToUpdate, of: id)
+        } else {
+            updateFavourite(at: indexToUpdate, of: id)
+        }
+    }
+    private func updateFavourite(at index: Int, of id: Int) {
+        let newState = !moviesRepresentable[index].favourite
+        moviesRepresentable[index].favourite = newState
     
-        CoreDataHelper.updateFavourite(withId: movieRepresentable.id, movieRepresentable.favourite)
+        CoreDataHelper.updateFavourite(withId: id, newState)
     
         delegate.reloadScreenData()
     }
     
-    func updateWatched(for movieRepresentable: MovieRepresentable) {
-        for movie in moviesRepresentable {
-            if movie.id == movieRepresentable.id {
-                movie.watched = !movie.watched
-            }
-        }
+    private func updateWatched(at index: Int, of id: Int) {
+        let newState = !moviesRepresentable[index].watched
+        moviesRepresentable[index].watched = newState
     
-        CoreDataHelper.updateWatched(withId: movieRepresentable.id, movieRepresentable.watched)
+        CoreDataHelper.updateWatched(withId: id, newState)
     
         delegate.reloadScreenData()
     }
