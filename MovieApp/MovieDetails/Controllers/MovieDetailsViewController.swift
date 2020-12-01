@@ -77,7 +77,6 @@ extension MovieDetailsViewController {
         configureTableView()
         populateTableView()
         setupButtonActions()
-        setButtonStates()
     }
     
     fileprivate func setupConstraints() {
@@ -138,23 +137,19 @@ extension MovieDetailsViewController {
         }
         rowItems.append(RowItem(content: movieRepresentable.overview , type: .overview))
         
+        watchedButton.isSelected = movieRepresentable.watched
+        favouritesButton.isSelected = movieRepresentable.favourite
+        
         if let movie = MovieEntity.findByID(id) {
-            self.movieRepresentable?.watched = movie.watched
-            self.movieRepresentable?.favourite = movie.favourite
-         }
+            watchedButton.isSelected = movie.watched
+            favouritesButton.isSelected = movie.favourite
+        }
     }
     
     fileprivate func setupButtonActions() {
         backButton.addTarget(self, action: #selector(goBack), for: .touchUpInside)
         watchedButton.addTarget(self, action: #selector(watchedButtonTapped), for: .touchUpInside)
         favouritesButton.addTarget(self, action: #selector(favouriteButtonTapped), for: .touchUpInside)
-    }
-    
-    func setButtonStates() {
-        if let movieRepresentable = movieRepresentable {
-            watchedButton.isSelected = movieRepresentable.watched
-            favouritesButton.isSelected = movieRepresentable.favourite
-        }
     }
     
     //MARK: Actions
