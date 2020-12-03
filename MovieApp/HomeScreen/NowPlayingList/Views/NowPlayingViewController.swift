@@ -6,13 +6,16 @@
 //
 
 import UIKit
+import Combine
 
-class NowPlayingListViewController: UIViewController {
+class NowPlayingViewController: UIViewController {
         
     //MARK: Properties
-    var moviesRepresentable = [MovieRepresentable]()
+    private var viewModel = NowPlayingViewModel()
+    var sub: AnyCancellable?
+    private var subscriptions = Set<AnyCancellable>()
     
-    lazy var nowPlayingCollectionView: UICollectionView = {
+    lazy var collectionView: UICollectionView = {
         let collectionView = UICollectionView(frame: self.view.frame, collectionViewLayout: UICollectionViewFlowLayout())
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         collectionView.backgroundColor = UIColor(named: "backgroundColor")
@@ -30,15 +33,18 @@ class NowPlayingListViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
+        setupBindings()
+        sub = viewModel.fetchItems()
+        
     }
     
-    override func viewWillAppear(_ animated: Bool) {
-        nowPlayingCollectionView.reloadData()
-    }
+//    override func viewWillAppear(_ animated: Bool) {
+//        fetchData(showLoader: true)
+//    }
 }
 
 //MARK: - UI
-extension NowPlayingListViewController {
+extension NowPlayingViewController {
     override var preferredStatusBarStyle: UIStatusBarStyle {
         return .lightContent
     }
@@ -49,7 +55,7 @@ extension NowPlayingListViewController {
         setupConstraints()
         configureCollectionView()
         configureRefreshControl()
-        fetchData(showLoader: true)
+        //fetchData(showLoader: true)
     }
     
     fileprivate func setupApperance() {
@@ -57,70 +63,78 @@ extension NowPlayingListViewController {
     }
     
     fileprivate func addSubviews() {
-        view.addSubview(nowPlayingCollectionView)
+        view.addSubview(collectionView)
     }
     
     fileprivate func setupConstraints() {
-        nowPlayingCollectionView.snp.makeConstraints { (make) in
+        collectionView.snp.makeConstraints { (make) in
             make.top.leading.trailing.bottom.equalTo(self.view.safeAreaLayoutGuide)
         }
     }
 }
 
 //MARK: - Methods
-extension NowPlayingListViewController {
+extension NowPlayingViewController {
+    private func setupBindings() {
+        viewModel.reload.sink(receiveValue: {
+            self.collectionView.reloadData()
+        })
+        .store(in: &subscriptions)
+        
+    }
+    
     fileprivate func configureRefreshControl() {
-        nowPlayingCollectionView.refreshControl = refreshControl
+        collectionView.refreshControl = refreshControl
         refreshControl.addTarget(self, action: #selector(refresh), for: .valueChanged)
     }
     
     @objc func refresh() {
-        fetchData(showLoader: false)
+        //fetchData(showLoader: false)
     }
     
-    func fetchData(showLoader: Bool) {
-        if showLoader {
-            showBlurLoader()
-        }
-        APIService.fetch(from: Constants.ALL_MOVIES_URL, of: Movies.self) { (movies, message) in
-            guard let movies = movies?.results else { return }
-            self.moviesRepresentable = self.createMovieRepresentable(from: movies)
-            self.nowPlayingCollectionView.reloadData()
-            self.refreshControl.endRefreshing()
-        }
-        
-        if showLoader {
-            self.removeBlurLoader()
-        }
-    }
-    
-    private func createMovieRepresentable(from movies: [Movie]) -> [MovieRepresentable] {
-        var moviesTemp = [MovieRepresentable]()
-        for movie in movies {
-            if let movieEntity = MovieEntity.findByID(movie.id) {
-                let movieRepresentable = MovieRepresentable(movieEntity)
-                moviesTemp.append(movieRepresentable)
-            } else {
-                let movieRepresentable = MovieRepresentable(movie)
-                moviesTemp.append(movieRepresentable)
-            }
-        }
-        
-        return moviesTemp
-    }
+//    func fetchData(showLoader: Bool) {
+//        if showLoader {
+//            showBlurLoader()
+//        }
+//        APIService.fetch(from: Constants.ALL_MOVIES_URL, of: Movies.self) { (movies, message) in
+//            guard let movies = movies?.results else { return }
+//            self.moviesRepresentable = self.createMovieRepresentable(from: movies)
+//            self.collectionView.reloadData()
+//            self.refreshControl.endRefreshing()
+//        }
+//
+//        if showLoader {
+//            self.removeBlurLoader()
+//        }
+//    }
+//
+//    private func createMovieRepresentable(from movies: [Movie]) -> [MovieRepresentable] {
+//        var moviesTemp = [MovieRepresentable]()
+//        for movie in movies {
+//            if let movieEntity = MovieEntity.findByID(movie.id) {
+//                let movieRepresentable = MovieRepresentable(movieEntity)
+//                moviesTemp.append(movieRepresentable)
+//            } else {
+//                let movieRepresentable = MovieRepresentable(movie)
+//                moviesTemp.append(movieRepresentable)
+//            }
+//        }
+//
+//        return moviesTemp
+//    }
     
     func configureCollectionView() {
-        nowPlayingCollectionView.delegate = self
-        nowPlayingCollectionView.dataSource = self
+        collectionView.delegate = self
+        collectionView.dataSource = self
         
-        nowPlayingCollectionView.register(NowPlayingCollectionCell.self, forCellWithReuseIdentifier: NowPlayingCollectionCell.reuseIdentifier)
+        collectionView.register(NowPlayingCollectionCell.self, forCellWithReuseIdentifier: NowPlayingCollectionCell.reuseIdentifier)
     }
 }
 
 //MARK: - CollectionViewDelegate
-extension NowPlayingListViewController: UICollectionViewDelegate {
+extension NowPlayingViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        let id = moviesRepresentable[indexPath.row].id
+        let id = viewModel.movies[indexPath.row].id
         
         let movieDetailsController = MovieDetailsViewController(movieId: id)
         
@@ -129,22 +143,24 @@ extension NowPlayingListViewController: UICollectionViewDelegate {
 }
 
 //MARK: - CollectionViewDataSource
-extension NowPlayingListViewController: UICollectionViewDataSource {
+extension NowPlayingViewController: UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return moviesRepresentable.count
+        return viewModel.movies.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell: NowPlayingCollectionCell = collectionView.dequeue(for: indexPath)
     
-        cell.configure(withMovieRepresentable: moviesRepresentable[indexPath.row])
+        let movieRepresentable = viewModel.movies[indexPath.row]
+        
+        cell.configure(withMovieRepresentable: movieRepresentable)
         
         return cell
     }
 }
 
 //MARK: - CollectionViewFlowLayout
-extension NowPlayingListViewController: UICollectionViewDelegateFlowLayout {
+extension NowPlayingViewController: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
         return UIEdgeInsets(top: 10,left: 10,bottom: 10,right: 10)
     }

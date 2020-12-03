@@ -7,6 +7,7 @@
 
 import Foundation
 import Alamofire
+import Combine
 
 class APIService {
     
@@ -22,6 +23,21 @@ class APIService {
             } catch {
                 completion(nil, error.localizedDescription)            }
            }
+    }
+    
+    static func fetchItems(from urlString: String) -> AnyPublisher<[Movie], Error>{
+        guard let url = URL(string: urlString) else {
+            //invalid url
+            fatalError()
+        }
+        
+        return URLSession.shared.dataTaskPublisher(for: url)
+            .map{ $0.data }
+            .decode(type: Movies.self, decoder: JSONDecoder())
+            .map{ $0.results }
+            .receive(on: RunLoop.main)
+            .eraseToAnyPublisher()
+        
     }
 
 }

@@ -15,7 +15,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
     
-        let nowPlayingVC = NowPlayingListViewController()
+        let nowPlayingVC = NowPlayingViewController()
         nowPlayingVC.tabBarItem.image = UIImage(named: "home")
         
         let watchedListVC = WatchedListViewController()

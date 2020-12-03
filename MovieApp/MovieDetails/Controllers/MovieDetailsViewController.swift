@@ -137,13 +137,13 @@ extension MovieDetailsViewController {
         }
         rowItems.append(RowItem(content: movieRepresentable.overview , type: .overview))
         
+        if let movie = MovieEntity.findByID(id) {
+            movieRepresentable.favourite = movie.watched
+            movieRepresentable.favourite = movie.favourite
+        }
+        
         watchedButton.isSelected = movieRepresentable.watched
         favouritesButton.isSelected = movieRepresentable.favourite
-        
-        if let movie = MovieEntity.findByID(id) {
-            watchedButton.isSelected = movie.watched
-            favouritesButton.isSelected = movie.favourite
-        }
     }
     
     fileprivate func setupButtonActions() {
