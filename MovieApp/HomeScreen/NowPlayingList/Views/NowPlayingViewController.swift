@@ -9,12 +9,13 @@ import UIKit
 import Combine
 
 class NowPlayingViewController: UIViewController {
-        
-    //MARK: Properties
-    private var viewModel = NowPlayingViewModel()
-    var sub: AnyCancellable?
+    private var viewModel: NowPlayingViewModel
+    
     private var subscriptions = Set<AnyCancellable>()
     
+    private let changeButtonStatePublisher = PassthroughSubject<Bool, Never>()
+        
+    //MARK: Properties
     lazy var collectionView: UICollectionView = {
         let collectionView = UICollectionView(frame: self.view.frame, collectionViewLayout: UICollectionViewFlowLayout())
         collectionView.translatesAutoresizingMaskIntoConstraints = false
@@ -29,18 +30,33 @@ class NowPlayingViewController: UIViewController {
         return control
     }()
     
+    //MARK: Init
+    init(viewModel: NowPlayingViewModel = NowPlayingViewModel()) {
+        self.viewModel = viewModel
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+}
+
+//MARK: - Lifecycle
+extension NowPlayingViewController {
+   
     //MARK: Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
         setupBindings()
-        sub = viewModel.fetchItems()
-        
     }
     
-//    override func viewWillAppear(_ animated: Bool) {
-//        fetchData(showLoader: true)
-//    }
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        for subscription in subscriptions {
+            subscription.cancel()
+        }
+    }
 }
 
 //MARK: - UI
@@ -49,24 +65,23 @@ extension NowPlayingViewController {
         return .lightContent
     }
     
-    fileprivate func setupUI() {
+    private func setupUI() {
         setupApperance()
         addSubviews()
         setupConstraints()
         configureCollectionView()
         configureRefreshControl()
-        //fetchData(showLoader: true)
     }
     
-    fileprivate func setupApperance() {
+    private func setupApperance() {
         view.backgroundColor = UIColor(named: "backgroundColor")
     }
     
-    fileprivate func addSubviews() {
+    private func addSubviews() {
         view.addSubview(collectionView)
     }
     
-    fileprivate func setupConstraints() {
+    private func setupConstraints() {
         collectionView.snp.makeConstraints { (make) in
             make.top.leading.trailing.bottom.equalTo(self.view.safeAreaLayoutGuide)
         }
@@ -76,54 +91,23 @@ extension NowPlayingViewController {
 //MARK: - Methods
 extension NowPlayingViewController {
     private func setupBindings() {
-        viewModel.reload.sink(receiveValue: {
-            self.collectionView.reloadData()
-        })
-        .store(in: &subscriptions)
+        subscriptions.insert(viewModel.fetchItems())
         
+        viewModel.$movies
+            .sink(receiveCompletion: { [weak self] _ in
+                self?.collectionView.reloadData()
+            }, receiveValue: { _ in})
+            .store(in: &subscriptions)
+        
+        print(viewModel.movies.count)
     }
     
-    fileprivate func configureRefreshControl() {
+    private func configureRefreshControl() {
         collectionView.refreshControl = refreshControl
-        refreshControl.addTarget(self, action: #selector(refresh), for: .valueChanged)
+        //refreshControl.addTarget(self, action: #selector(refresh), for: .valueChanged)
     }
     
-    @objc func refresh() {
-        //fetchData(showLoader: false)
-    }
-    
-//    func fetchData(showLoader: Bool) {
-//        if showLoader {
-//            showBlurLoader()
-//        }
-//        APIService.fetch(from: Constants.ALL_MOVIES_URL, of: Movies.self) { (movies, message) in
-//            guard let movies = movies?.results else { return }
-//            self.moviesRepresentable = self.createMovieRepresentable(from: movies)
-//            self.collectionView.reloadData()
-//            self.refreshControl.endRefreshing()
-//        }
-//
-//        if showLoader {
-//            self.removeBlurLoader()
-//        }
-//    }
-//
-//    private func createMovieRepresentable(from movies: [Movie]) -> [MovieRepresentable] {
-//        var moviesTemp = [MovieRepresentable]()
-//        for movie in movies {
-//            if let movieEntity = MovieEntity.findByID(movie.id) {
-//                let movieRepresentable = MovieRepresentable(movieEntity)
-//                moviesTemp.append(movieRepresentable)
-//            } else {
-//                let movieRepresentable = MovieRepresentable(movie)
-//                moviesTemp.append(movieRepresentable)
-//            }
-//        }
-//
-//        return moviesTemp
-//    }
-    
-    func configureCollectionView() {
+    private func configureCollectionView() {
         collectionView.delegate = self
         collectionView.dataSource = self
         

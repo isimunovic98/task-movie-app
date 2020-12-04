@@ -8,10 +8,10 @@
 import Foundation
 import Combine
 
+
 class NowPlayingViewModel {
-    let reload = PassthroughSubject<Void, Never>()
-    
-    var movies: [MovieRepresentable] = []
+    //properties
+    @Published var movies: [MovieRepresentable] = []
     
     func fetchItems() -> AnyCancellable {
         return APIService.fetchItems(from: Constants.ALL_MOVIES_URL)
@@ -21,7 +21,6 @@ class NowPlayingViewModel {
                 }
             }
             .sink(receiveCompletion: { _ in
-                self.reload.send()
             }, receiveValue: {
                 self.movies = $0
             })

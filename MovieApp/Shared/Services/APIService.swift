@@ -37,7 +37,6 @@ class APIService {
             .map{ $0.results }
             .receive(on: RunLoop.main)
             .eraseToAnyPublisher()
-        
     }
 
 }

@@ -11,6 +11,8 @@ class NowPlayingCollectionCell: UICollectionViewCell {
     
     //MARK: Properties
     var movieRepresentable: MovieRepresentable?
+    
+    var shouldChangeButtonState: ((ButtonType, Int) -> Void)?
 
     let moviePosterImageView: UIImageView = {
         let imageView = UIImageView()
