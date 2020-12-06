@@ -7,6 +7,7 @@
 
 import UIKit
 import SnapKit
+import Combine
 
 class MovieDetailsViewController: UIViewController {
     
@@ -15,10 +16,14 @@ class MovieDetailsViewController: UIViewController {
     
     //MARK: Properties
     var id: Int
-    var movieRepresentable: MovieRepresentable?
-    var rowItems = [RowItem<Any, MovieDetailsCellTypes>]()
     
-    let movieDetailsTableView: UITableView = {
+    var viewModel: MovieDetailsViewModel
+    
+    var subscriptions = Set<AnyCancellable>()
+    
+    private var updateWatched = PassthroughSubject<Void,Never>()
+    
+    let tableView: UITableView = {
         let tableView = UITableView()
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.separatorStyle = .none
@@ -26,7 +31,7 @@ class MovieDetailsViewController: UIViewController {
         tableView.allowsSelection = false
         return tableView
     }()
-        
+    
     let backButton: UIButton = {
         let button = UIButton()
         button.translatesAutoresizingMaskIntoConstraints = false
@@ -46,24 +51,35 @@ class MovieDetailsViewController: UIViewController {
         return button
     }()
     
-    //MARK: Lifecycle
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        setupUI()
-    }
-    
     //MARK: Init
     init(movieId id: Int) {
         self.id = id
+        self.viewModel = MovieDetailsViewModel(movieId: id)
         super.init(nibName: nil, bundle: nil)
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-
+    
 }
 
+//MARK: - Lifecycle
+extension MovieDetailsViewController {
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        setupBindings()
+    }
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        setupUI()
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+    }
+}
 //MARK: - UI
 extension MovieDetailsViewController {
     
@@ -75,13 +91,12 @@ extension MovieDetailsViewController {
         addSubviews()
         setupConstraints()
         configureTableView()
-        populateTableView()
         setupButtonActions()
     }
     
     fileprivate func setupConstraints() {
         
-        movieDetailsTableView.snp.makeConstraints { (make) in
+        tableView.snp.makeConstraints { (make) in
             make.top.leading.trailing.bottom.equalTo(view.safeAreaLayoutGuide)
         }
         
@@ -107,43 +122,23 @@ extension MovieDetailsViewController {
 
 //MARK: - Methods
 extension MovieDetailsViewController {
+    private func setupBindings() {
+        viewModel.attachViewEventListener(updateWatched: updateWatched.eraseToAnyPublisher())
+        
+        viewModel.fetchMovieDetails().store(in: &subscriptions)
+        
+        viewModel.screenData
+            .sink(receiveValue: { _ in
+                self.tableView.reloadData()
+            })
+            .store(in: &subscriptions)
+    }
+    
     fileprivate func addSubviews() {
-        view.addSubview(movieDetailsTableView)
+        view.addSubview(tableView)
         view.addSubview(backButton)
         view.addSubview(favouritesButton)
         view.addSubview(watchedButton)
-    }
-    
-    fileprivate func populateTableView() {
-        showBlurLoader()
-        APIService.fetch(from: MovieDetailsViewController.response + String(self.id) + MovieDetailsViewController.apiKey, of: MovieDetails.self) { (movieDetails, message) in
-            guard let movieDetails = movieDetails else { return }
-            self.movieRepresentable = MovieRepresentable(movieDetails)
-            self.createScreenData(from: self.movieRepresentable)
-            self.movieDetailsTableView.reloadData()
-            self.removeBlurLoader()
-        }
-    }
-    
-    func createScreenData(from movieRepresentable: MovieRepresentable?) {
-        guard let movieRepresentable = movieRepresentable else { return }
-        rowItems.append(RowItem(content: movieRepresentable.posterPath , type: .poster))
-        rowItems.append(RowItem(content: movieRepresentable.title , type: .title))
-        if let genres = movieRepresentable.genres {
-            rowItems.append(RowItem(content: genres , type: .genres))
-        }
-        if let tagline = movieRepresentable.tagline {
-            rowItems.append(RowItem(content: tagline , type: .quote))
-        }
-        rowItems.append(RowItem(content: movieRepresentable.overview , type: .overview))
-        
-        if let movie = MovieEntity.findByID(id) {
-            movieRepresentable.favourite = movie.watched
-            movieRepresentable.favourite = movie.favourite
-        }
-        
-        watchedButton.isSelected = movieRepresentable.watched
-        favouritesButton.isSelected = movieRepresentable.favourite
     }
     
     fileprivate func setupButtonActions() {
@@ -154,19 +149,11 @@ extension MovieDetailsViewController {
     
     //MARK: Actions
     @objc func watchedButtonTapped() {
-        if let movieRepresentable = movieRepresentable {
-            movieRepresentable.watched = !movieRepresentable.watched
-            watchedButton.isSelected = movieRepresentable.watched
-            CoreDataHelper.saveOrUpdate(movieRepresentable)
-        }
+        updateWatched.send()
     }
     
     @objc func favouriteButtonTapped() {
-        if let movieRepresentable = movieRepresentable {
-            movieRepresentable.favourite = !movieRepresentable.favourite
-            favouritesButton.isSelected = movieRepresentable.favourite
-            CoreDataHelper.saveOrUpdate(movieRepresentable)
-        }
+
     }
     
     @objc func goBack() {
@@ -177,27 +164,30 @@ extension MovieDetailsViewController {
 //MARK: - TableViewDelegate
 extension MovieDetailsViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return rowItems.count
+        return viewModel.screenData.value.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
-        let itemType = rowItems[indexPath.row].type
+        let itemType = viewModel.screenData.value[indexPath.row].type
         
         switch itemType {
         
         case .poster:
             let cell: MoviePosterCell = tableView.dequeue(for: indexPath)
             
-            let imageUrl = rowItems[indexPath.row].content
-            cell.setMoviePoster(from: imageUrl as! String)
-            
+            if let infoItem = viewModel.screenData.value[indexPath.row].content as? InfoItem {
+                let imageUrl = infoItem.posterPath
+                cell.setMoviePoster(from: imageUrl)
+                watchedButton.isSelected = infoItem.watched
+                favouritesButton.isSelected = infoItem.favourited
+            }
             return cell
             
         case .title:
             let cell: MovieTitleCell = tableView.dequeue(for: indexPath)
             
-            let title = rowItems[indexPath.row].content
+            let title = viewModel.screenData.value[indexPath.row].content
             cell.setMovieTitle(title: title as! String)
             
             return cell
@@ -205,7 +195,7 @@ extension MovieDetailsViewController: UITableViewDelegate, UITableViewDataSource
         case .genres:
             let cell: MovieGenresCell = tableView.dequeue(for: indexPath)
             
-            let genres = rowItems[indexPath.row].content
+            let genres = viewModel.screenData.value[indexPath.row].content
             cell.setMovieGenres(genres: genres as! [Genre])
             
             return cell
@@ -213,7 +203,7 @@ extension MovieDetailsViewController: UITableViewDelegate, UITableViewDataSource
         case .quote:
             let cell: MovieQuoteCell = tableView.dequeue(for: indexPath)
             
-            let quote = rowItems[indexPath.row].content
+            let quote = viewModel.screenData.value[indexPath.row].content
             cell.setMovieQuote(quote: quote as! String)
             
             return cell
@@ -221,7 +211,7 @@ extension MovieDetailsViewController: UITableViewDelegate, UITableViewDataSource
         case .overview:
             let cell: MovieOverviewCell = tableView.dequeue(for: indexPath)
             
-            let overview = rowItems[indexPath.row].content
+            let overview = viewModel.screenData.value[indexPath.row].content
             cell.setMovieOverview(overview: overview as! String)
             
             return cell
@@ -231,16 +221,16 @@ extension MovieDetailsViewController: UITableViewDelegate, UITableViewDataSource
     func configureTableView() {
         setTableViewDelegates()
         
-        movieDetailsTableView.register(MoviePosterCell.self, forCellReuseIdentifier: MoviePosterCell.reuseIdentifier)
-        movieDetailsTableView.register(MovieTitleCell.self, forCellReuseIdentifier: MovieTitleCell.reuseIdentifier)
-        movieDetailsTableView.register(MovieGenresCell.self, forCellReuseIdentifier: MovieGenresCell.reuseIdentifier)
-        movieDetailsTableView.register(MovieQuoteCell.self, forCellReuseIdentifier: MovieQuoteCell.reuseIdentifier)
-        movieDetailsTableView.register(MovieOverviewCell.self, forCellReuseIdentifier: MovieOverviewCell.reuseIdentifier)
+        tableView.register(MoviePosterCell.self, forCellReuseIdentifier: MoviePosterCell.reuseIdentifier)
+        tableView.register(MovieTitleCell.self, forCellReuseIdentifier: MovieTitleCell.reuseIdentifier)
+        tableView.register(MovieGenresCell.self, forCellReuseIdentifier: MovieGenresCell.reuseIdentifier)
+        tableView.register(MovieQuoteCell.self, forCellReuseIdentifier: MovieQuoteCell.reuseIdentifier)
+        tableView.register(MovieOverviewCell.self, forCellReuseIdentifier: MovieOverviewCell.reuseIdentifier)
     }
     
     func setTableViewDelegates() {
-        movieDetailsTableView.delegate = self
-        movieDetailsTableView.dataSource = self
+        tableView.delegate = self
+        tableView.dataSource = self
     }
     
     
