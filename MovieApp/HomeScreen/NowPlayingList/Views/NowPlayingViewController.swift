@@ -12,8 +12,6 @@ class NowPlayingViewController: UIViewController {
     private var viewModel: NowPlayingViewModel
     
     private var subscriptions = Set<AnyCancellable>()
-    
-    private let changeButtonStatePublisher = PassthroughSubject<Bool, Never>()
         
     //MARK: Properties
     lazy var collectionView: UICollectionView = {
@@ -45,17 +43,21 @@ class NowPlayingViewController: UIViewController {
 extension NowPlayingViewController {
    
     //MARK: Lifecycle
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        setupUI()
+    override func viewWillAppear(_ animated: Bool) {
         setupBindings()
     }
     
-    override func viewDidDisappear(_ animated: Bool) {
-        super.viewDidDisappear(animated)
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        setupUI()
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
         for subscription in subscriptions {
             subscription.cancel()
         }
+        subscriptions.removeAll()
     }
 }
 
@@ -91,20 +93,30 @@ extension NowPlayingViewController {
 //MARK: - Methods
 extension NowPlayingViewController {
     private func setupBindings() {
-        subscriptions.insert(viewModel.fetchItems())
+        viewModel.fetchItems().store(in: &subscriptions)
         
-        viewModel.$movies
-            .sink(receiveCompletion: { [weak self] _ in
+        viewModel.movies
+            .sink(receiveValue: { [weak self] _ in
                 self?.collectionView.reloadData()
-            }, receiveValue: { _ in})
+            })
             .store(in: &subscriptions)
-        
-        print(viewModel.movies.count)
+    }
+    
+    private func updateButtonState(ofType type: CustomButtonType, ofId id: Int){
+        if type == .watched {
+            viewModel.updateWatched(for: id)
+        } else {
+            viewModel.updateFavourite(for: id)
+        }
     }
     
     private func configureRefreshControl() {
         collectionView.refreshControl = refreshControl
-        //refreshControl.addTarget(self, action: #selector(refresh), for: .valueChanged)
+        refreshControl.addTarget(self, action: #selector(refresh), for: .valueChanged)
+    }
+    
+    @objc func refresh() {
+        collectionView.reloadData()
     }
     
     private func configureCollectionView() {
@@ -118,7 +130,7 @@ extension NowPlayingViewController {
 //MARK: - CollectionViewDelegate
 extension NowPlayingViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        let id = viewModel.movies[indexPath.row].id
+        let id = viewModel.movies.value[indexPath.row].id
         
         let movieDetailsController = MovieDetailsViewController(movieId: id)
         
@@ -129,15 +141,19 @@ extension NowPlayingViewController: UICollectionViewDelegate {
 //MARK: - CollectionViewDataSource
 extension NowPlayingViewController: UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return viewModel.movies.count
+        return viewModel.movies.value.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell: NowPlayingCollectionCell = collectionView.dequeue(for: indexPath)
     
-        let movieRepresentable = viewModel.movies[indexPath.row]
+        let movieRepresentable = viewModel.movies.value[indexPath.row]
         
         cell.configure(withMovieRepresentable: movieRepresentable)
+        
+        cell.shouldChangeButtonState = { [weak self] (type, id) in
+            self?.updateButtonState(ofType: type, ofId: id)
+        }
         
         return cell
     }

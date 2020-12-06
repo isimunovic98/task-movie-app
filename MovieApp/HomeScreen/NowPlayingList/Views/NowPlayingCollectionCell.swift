@@ -10,9 +10,9 @@ import UIKit
 class NowPlayingCollectionCell: UICollectionViewCell {
     
     //MARK: Properties
-    var movieRepresentable: MovieRepresentable?
+    var id: Int!
     
-    var shouldChangeButtonState: ((ButtonType, Int) -> Void)?
+    var shouldChangeButtonState: ((CustomButtonType, Int) -> Void)?
 
     let moviePosterImageView: UIImageView = {
         let imageView = UIImageView()
@@ -143,7 +143,8 @@ extension NowPlayingCollectionCell {
 //MARK: - Methods
 extension NowPlayingCollectionCell {
     func configure(withMovieRepresentable movieRepresentable: MovieRepresentable) {
-        self.movieRepresentable = movieRepresentable
+        self.id = movieRepresentable.id
+        
         moviePosterImageView.setImageFromUrl(Constants.IMAGE_BASE_PATH + movieRepresentable.posterPath)
         yearOfReleaseLabel.text = movieRepresentable.releaseDate.extractYear
         movieTitleLabel.text = movieRepresentable.title
@@ -160,17 +161,11 @@ extension NowPlayingCollectionCell {
     
     //MARK: Actions
     @objc func watchedButtonTapped() {
-        guard let movieRepresentable = movieRepresentable else { return }
-        movieRepresentable.watched = !movieRepresentable.watched
-        watchedButton.isSelected = movieRepresentable.watched
-        CoreDataHelper.saveOrUpdate(movieRepresentable)
+        shouldChangeButtonState?(watchedButton.type, id)
     }
     
     @objc func favouriteButtonTapped() {
-        guard let movieRepresentable = movieRepresentable else { return }
-        movieRepresentable.favourite = !movieRepresentable.favourite
-        favouritesButton.isSelected = movieRepresentable.favourite
-        CoreDataHelper.saveOrUpdate(movieRepresentable)
+        shouldChangeButtonState?(favouritesButton.type, id)
     }
 }
 
