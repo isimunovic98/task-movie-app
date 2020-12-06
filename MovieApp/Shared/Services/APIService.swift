@@ -25,7 +25,7 @@ class APIService {
            }
     }
     
-    static func fetchItems(from urlString: String) -> AnyPublisher<[Movie], Error>{
+    static func fetchItems<T: Codable>(from urlString: String, for: T.Type) -> AnyPublisher<T, Error>{
         guard let url = URL(string: urlString) else {
             //invalid url
             fatalError()
@@ -33,8 +33,7 @@ class APIService {
         
         return URLSession.shared.dataTaskPublisher(for: url)
             .map{ $0.data }
-            .decode(type: Movies.self, decoder: JSONDecoder())
-            .map{ $0.results }
+            .decode(type: T.self, decoder: JSONDecoder())
             .receive(on: RunLoop.main)
             .eraseToAnyPublisher()
     }
