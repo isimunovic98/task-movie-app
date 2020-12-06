@@ -7,10 +7,16 @@
 
 import UIKit
 
+protocol CellDelegate: class {
+    func onButtonTapped(ofId id: Int)
+}
+
 class WatchedFavouriteCell: UITableViewCell {
     
     //MARK: Properties
-    var movieRepresentable: MovieRepresentable?
+    var id: Int!
+    
+    var delegate: CellDelegate?
     
     var button: UIButton?
     
@@ -107,8 +113,11 @@ extension WatchedFavouriteCell {
 extension WatchedFavouriteCell {
     
     func configure(withMovieRepresentable movieRepresentable: MovieRepresentable, forType type: String) {
-        self.movieRepresentable = movieRepresentable
-        self.moviePosterImageView.setImageFromUrl(Constants.IMAGE_BASE_PATH + movieRepresentable.posterPath)
+        if let button = button {
+            button.removeFromSuperview()
+        }
+        self.id = movieRepresentable.id
+        moviePosterImageView.setImageFromUrl(Constants.IMAGE_BASE_PATH + movieRepresentable.posterPath)
         yearOfReleaseLabel.text = movieRepresentable.releaseDate.extractYear
         movieTitleLabel.text = movieRepresentable.title
         movieOverviewLabel.text = movieRepresentable.overview
@@ -125,27 +134,16 @@ extension WatchedFavouriteCell {
         
         if type == WatchedListViewController.reuseIdentifier {
             button = getWatchedListButton()
-            self.button?.addTarget(self, action: #selector(watchedButtonTapped), for: .touchUpInside)
+            self.button?.addTarget(self, action: #selector(buttonTapped), for: .touchUpInside)
         } else {
             button = getFavouriteListButton()
-            self.button?.addTarget(self, action: #selector(favouriteButtonTapped), for: .touchUpInside)
+            self.button?.addTarget(self, action: #selector(buttonTapped), for: .touchUpInside)
         }
     }
     
     //MARK: Actions
-    
-    @objc func watchedButtonTapped() {
-        guard let movieRepresentable = movieRepresentable else { return }
-        movieRepresentable.watched = !movieRepresentable.watched
-        button?.isSelected = movieRepresentable.watched
-        CoreDataHelper.updateWatched(withId: movieRepresentable.id, movieRepresentable.watched)
-    }
-    
-    @objc func favouriteButtonTapped() {
-        guard let movieRepresentable = movieRepresentable else { return }
-        movieRepresentable.favourite = !movieRepresentable.favourite
-        button?.isSelected = movieRepresentable.favourite
-        CoreDataHelper.updateFavourite(withId: movieRepresentable.id, movieRepresentable.favourite)
+    @objc func buttonTapped() {
+        delegate?.onButtonTapped(ofId: id)
     }
 }
 

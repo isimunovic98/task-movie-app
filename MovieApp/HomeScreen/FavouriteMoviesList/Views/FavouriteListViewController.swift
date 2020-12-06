@@ -5,13 +5,15 @@
 //  Created by Ivan Simunovic on 09/11/2020.
 //
 import UIKit
+import Combine
 
 class FavouriteListViewController: UIViewController, ReusableView {
-    
     //MARK: Properties
-    var moviesRepresentable = [MovieRepresentable]()
+    var viewModel: FavouritesViewModel
     
-    let favouriteMoviesTableView: UITableView = {
+    var subscriptions = Set<AnyCancellable>()
+    
+    let tableView: UITableView = {
         let tableView = UITableView()
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.separatorStyle = .none
@@ -19,14 +21,34 @@ class FavouriteListViewController: UIViewController, ReusableView {
         return tableView
     }()
 
-    //MARK: Lifecycle
+    init(viewModel: FavouritesViewModel = FavouritesViewModel()) {
+        self.viewModel = viewModel
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+}
+
+//MARK: - Lifecycle
+extension FavouriteListViewController {
+    
+    override func viewWillAppear(_ animated: Bool) {
+        setupBindings()
+    }
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
     }
     
-    override func viewWillAppear(_ animated: Bool) {
-        fetchData()
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        for subscription in subscriptions {
+            subscription.cancel()
+        }
+        subscriptions.removeAll()
     }
 }
 
@@ -42,7 +64,6 @@ extension FavouriteListViewController {
         addSubviews()
         setupConstraints()
         configureTableView()
-        fetchData()
     }
     
     fileprivate func setupAppearance() {
@@ -50,11 +71,11 @@ extension FavouriteListViewController {
     }
     
     fileprivate func addSubviews() {
-        view.addSubview(favouriteMoviesTableView)
+        view.addSubview(tableView)
     }
     
     fileprivate func setupConstraints() {
-        favouriteMoviesTableView.snp.makeConstraints { (make) in
+        tableView.snp.makeConstraints { (make) in
             make.edges.equalTo(view.safeAreaLayoutGuide).inset(UIEdgeInsets(top: 0, left: 15, bottom: 0, right: 15))
         }
         
@@ -63,12 +84,24 @@ extension FavouriteListViewController {
 
 //MARK: - Methods
 extension FavouriteListViewController {
-    func fetchData() {
-        self.moviesRepresentable = CoreDataHelper.fetchFavouriteMovies()
+    func setupBindings(){
+        viewModel.fetchFavouritedMovies()
         
-        favouriteMoviesTableView.reloadData()
+        viewModel.favouritedMovies
+            .sink(receiveValue: { [weak self] _ in
+                self?.tableView.reloadData()
+            })
+            .store(in: &subscriptions)
     }
 }
+
+extension FavouriteListViewController: CellDelegate {
+    func onButtonTapped(ofId id: Int) {
+        viewModel.updateFavourite(ofId: id)
+    }
+    
+}
+
 
 //MARK: - TableViewDelegate
 extension FavouriteListViewController: UITableViewDelegate, UITableViewDataSource {
@@ -76,14 +109,17 @@ extension FavouriteListViewController: UITableViewDelegate, UITableViewDataSourc
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell: WatchedFavouriteCell = tableView.dequeue(for: indexPath)
         
-        let movieRepresentable = moviesRepresentable[indexPath.section]
+        let movieRepresentable = viewModel.favouritedMovies.value[indexPath.section]
         
         cell.configure(withMovieRepresentable: movieRepresentable, forType: FavouriteListViewController.reuseIdentifier)
+        
+        cell.delegate = self
+        
         return cell
     }
     
     func numberOfSections(in tableView: UITableView) -> Int {
-        return self.moviesRepresentable.count
+        return viewModel.favouritedMovies.value.count
     }
     
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
@@ -105,7 +141,7 @@ extension FavouriteListViewController: UITableViewDelegate, UITableViewDataSourc
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let id = moviesRepresentable[indexPath.section].id
+        let id = viewModel.favouritedMovies.value[indexPath.section].id
         
         let movieDetailsController = MovieDetailsViewController(movieId: id)
         
@@ -115,11 +151,11 @@ extension FavouriteListViewController: UITableViewDelegate, UITableViewDataSourc
     func configureTableView() {
         setTableViewDelegates()
         
-        favouriteMoviesTableView.register(WatchedFavouriteCell.self, forCellReuseIdentifier: WatchedFavouriteCell.reuseIdentifier)
+        tableView.register(WatchedFavouriteCell.self, forCellReuseIdentifier: WatchedFavouriteCell.reuseIdentifier)
     }
     
     func setTableViewDelegates() {
-        favouriteMoviesTableView.delegate = self
-        favouriteMoviesTableView.dataSource = self
+        tableView.delegate = self
+        tableView.dataSource = self
     }
 }

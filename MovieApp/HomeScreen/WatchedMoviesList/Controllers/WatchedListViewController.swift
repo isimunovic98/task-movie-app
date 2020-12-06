@@ -6,28 +6,51 @@
 //
 
 import UIKit
+import Combine
 
 class WatchedListViewController: UIViewController, ReusableView {
-    
     //MARK: Properties
-    var moviesRepresentable = [MovieRepresentable]()
+    var viewModel: WatchedViewModel
     
-    let watchedMoviesTableView: UITableView = {
+    var subscriptions = Set<AnyCancellable>()
+    
+    let tableView: UITableView = {
         let tableView = UITableView()
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.separatorStyle = .none
         tableView.backgroundColor = UIColor(named: "backgroundColor")
         return tableView
     }()
+    
+    init(viewModel: WatchedViewModel = WatchedViewModel()) {
+        self.viewModel = viewModel
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+}
 
-    //MARK: Lifecycle
+//MArk: - Lifecycle
+extension WatchedListViewController {
+    
+    override func viewWillAppear(_ animated: Bool) {
+        setupBindings()
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
     }
+
     
-    override func viewWillAppear(_ animated: Bool) {
-        fetchData()
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        for subscription in subscriptions {
+            subscription.cancel()
+        }
+        subscriptions.removeAll()
     }
 }
 
@@ -43,7 +66,6 @@ extension WatchedListViewController {
         addSubviews()
         setupConstraints()
         configureTableView()
-        fetchData()
     }
     
     fileprivate func setupAppearance() {
@@ -51,11 +73,11 @@ extension WatchedListViewController {
     }
     
     fileprivate func addSubviews() {
-        view.addSubview(watchedMoviesTableView)
+        view.addSubview(tableView)
     }
     
     fileprivate func setupConstraints() {
-        watchedMoviesTableView.snp.makeConstraints { (make) in
+        tableView.snp.makeConstraints { (make) in
             make.top.bottom.equalTo(self.view.safeAreaLayoutGuide)
             make.leading.trailing.equalTo(self.view.safeAreaLayoutGuide).inset(15)
         }
@@ -65,13 +87,23 @@ extension WatchedListViewController {
 
 //MARK: - Methods
 extension WatchedListViewController {
-    func fetchData() {
-        self.moviesRepresentable = CoreDataHelper.fetchWatchedMovies()
+    func setupBindings(){
+        viewModel.fetchWatchedMovies()
         
-        watchedMoviesTableView.reloadData()
+        viewModel.watchedMovies
+            .sink(receiveValue: { [weak self] _ in
+                self?.tableView.reloadData()
+            })
+            .store(in: &subscriptions)
     }
 }
 
+extension WatchedListViewController: CellDelegate {
+    func onButtonTapped(ofId id: Int) {
+        viewModel.updateWatched(ofId: id)
+    }
+
+}
 
 //MARK: - TableViewDelegate
 extension WatchedListViewController: UITableViewDelegate, UITableViewDataSource {
@@ -79,14 +111,17 @@ extension WatchedListViewController: UITableViewDelegate, UITableViewDataSource 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell: WatchedFavouriteCell = tableView.dequeue(for: indexPath)
         
-        let movieRepresentable = moviesRepresentable[indexPath.section]
+        let movieRepresentable = viewModel.watchedMovies.value[indexPath.section]
         
         cell.configure(withMovieRepresentable: movieRepresentable, forType: WatchedListViewController.reuseIdentifier)
+        
+        cell.delegate = self
+        
         return cell
     }
     
     func numberOfSections(in tableView: UITableView) -> Int {
-        return self.moviesRepresentable.count
+        return self.viewModel.watchedMovies.value.count
     }
     
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
@@ -108,21 +143,21 @@ extension WatchedListViewController: UITableViewDelegate, UITableViewDataSource 
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let id = moviesRepresentable[indexPath.section].id
-        
+        let id = viewModel.watchedMovies.value[indexPath.section].id
+
         let movieDetailsController = MovieDetailsViewController(movieId: id)
-        
+
         navigationController?.pushViewController(movieDetailsController, animated: false)
     }
     
     func configureTableView() {
         setTableViewDelegates()
         
-        watchedMoviesTableView.register(WatchedFavouriteCell.self, forCellReuseIdentifier: WatchedFavouriteCell.reuseIdentifier)
+        tableView.register(WatchedFavouriteCell.self, forCellReuseIdentifier: WatchedFavouriteCell.reuseIdentifier)
     }
     
     func setTableViewDelegates() {
-        watchedMoviesTableView.delegate = self
-        watchedMoviesTableView.dataSource = self
+        tableView.delegate = self
+        tableView.dataSource = self
     }
 }

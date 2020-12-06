@@ -7,7 +7,8 @@
 
 import UIKit
 
-class WatchedCustomButton: UIButton {
+class WatchedCustomButton: UIButton, CustomButton {
+    var type: CustomButtonType = .watched
 
     override init(frame: CGRect) {
         super.init(frame: frame)
