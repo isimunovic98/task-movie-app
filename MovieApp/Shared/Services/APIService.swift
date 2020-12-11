@@ -32,9 +32,9 @@ class APIService {
         }
         
         return URLSession.shared.dataTaskPublisher(for: url)
+            .receive(on: RunLoop.main)
             .map{ $0.data }
             .decode(type: T.self, decoder: JSONDecoder())
-            .receive(on: RunLoop.main)
             .eraseToAnyPublisher()
     }
 

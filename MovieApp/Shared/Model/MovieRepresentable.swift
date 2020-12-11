@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct MovieRepresentable {
+class MovieRepresentable {
     var id: Int
     var title: String
     var overview: String
@@ -16,7 +16,7 @@ struct MovieRepresentable {
     var genres: [Genre]?
     var tagline: String?
     var watched: Bool
-    var favourite: Bool
+    var favourited: Bool
     
     init(_ movie: Movie) {
         self.id = Int(movie.id)
@@ -27,7 +27,7 @@ struct MovieRepresentable {
         self.genres = nil
         self.tagline = nil
         self.watched = false
-        self.favourite = false
+        self.favourited = false
     }
     
     init(_ movieEntity: MovieEntity) {
@@ -39,7 +39,7 @@ struct MovieRepresentable {
         self.genres = nil
         self.tagline = nil
         self.watched = movieEntity.watched
-        self.favourite =  movieEntity.favourite
+        self.favourited =  movieEntity.favourite
     }
     
     init(_ movieDetails: MovieDetails) {
@@ -51,7 +51,7 @@ struct MovieRepresentable {
         self.genres = movieDetails.genres
         self.tagline = movieDetails.tagline
         self.watched = false
-        self.favourite = false
+        self.favourited = false
     }
     
     
@@ -64,6 +64,6 @@ struct MovieRepresentable {
         self.genres = movie.genres
         self.tagline = movie.tagline
         self.watched = !movie.watched
-        self.favourite = !movie.favourite
+        self.favourited = !movie.favourited
     }
 }

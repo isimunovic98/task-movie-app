@@ -54,7 +54,7 @@ class CoreDataHelper {
         return [MovieRepresentable]()
     }
     
-    static func fetchFavouriteMovies() -> [MovieRepresentable] {
+    static func fetchFavouritedMovies() -> [MovieRepresentable] {
         var entityes: [MovieEntity]
         let fetchRequest = MovieEntity.fetchRequest() as NSFetchRequest<MovieEntity>
         let predicate = NSPredicate(format: "favourite = %d", true)
@@ -95,7 +95,7 @@ class CoreDataHelper {
         }
     }
     
-    static func updateFavourite(withId id: Int,_ favourite: Bool) {
+    static func updateFavourited(withId id: Int,_ favourite: Bool) {
         let appMovie = MovieEntity.findByID(id)
         appMovie?.setValue(favourite, forKey: "favourite")
         
@@ -121,7 +121,7 @@ class CoreDataHelper {
 
     static func saveOrUpdate(_ movie: MovieRepresentable) {
         if let movieEntity = MovieEntity.findByID(movie.id) {
-            update(movieEntity, movie.watched, movie.favourite)
+            update(movieEntity, movie.watched, movie.favourited)
             do {
                 try context.save()
             }
@@ -129,7 +129,7 @@ class CoreDataHelper {
                 fatalError("Error saving movie")
             }
         } else {
-            save(movie, movie.watched, movie.favourite)
+            save(movie, movie.watched, movie.favourited)
         }
     }
     
