@@ -177,7 +177,7 @@
 			isa = PBXGroup;
 			children = (
 				0276D655257BDF9F005C396F /* ViewModel */,
-				022DE94A25545878004B902C /* Controllers */,
+				022DE94A25545878004B902C /* Views */,
 			);
 			path = WatchedMoviesList;
 			sourceTree = "<group>";
@@ -190,12 +190,12 @@
 			path = CustomCells;
 			sourceTree = "<group>";
 		};
-		022DE94A25545878004B902C /* Controllers */ = {
+		022DE94A25545878004B902C /* Views */ = {
 			isa = PBXGroup;
 			children = (
 				022DE94F25545A9E004B902C /* WatchedListViewController.swift */,
 			);
-			path = Controllers;
+			path = Views;
 			sourceTree = "<group>";
 		};
 		0235DE862553F4F700556814 /* Model */ = {
@@ -251,6 +251,14 @@
 				0276D65D257CD19F005C396F /* MovieDetailsViewModel.swift */,
 			);
 			path = ViewModel;
+			sourceTree = "<group>";
+		};
+		0287B58F258171B600EDCE2D /* ViewController */ = {
+			isa = PBXGroup;
+			children = (
+				02E2924E254C70630088E7A6 /* MovieDetailsViewController.swift */,
+			);
+			path = ViewController;
 			sourceTree = "<group>";
 		};
 		028FA7E125503F0600942985 /* Shared */ = {
@@ -338,8 +346,8 @@
 		029C62F0254C323D00947B25 /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				02E91722255D4D630042E12A /* NowPlayingCollectionCell.swift */,
-				02BBD5C7254C3F2E00058844 /* NowPlayingViewController.swift */,
+				02ADC1F1257E9AD800776723 /* ViewController */,
+				02ADC1F0257E9ACA00776723 /* CustomCell */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -351,6 +359,22 @@
 				02AB2ADB255F1CA700FA7628 /* BlurLoaderHelper.swift */,
 			);
 			path = Subclasses;
+			sourceTree = "<group>";
+		};
+		02ADC1F0257E9ACA00776723 /* CustomCell */ = {
+			isa = PBXGroup;
+			children = (
+				02E91722255D4D630042E12A /* NowPlayingCollectionCell.swift */,
+			);
+			path = CustomCell;
+			sourceTree = "<group>";
+		};
+		02ADC1F1257E9AD800776723 /* ViewController */ = {
+			isa = PBXGroup;
+			children = (
+				02BBD5C7254C3F2E00058844 /* NowPlayingViewController.swift */,
+			);
+			path = ViewController;
 			sourceTree = "<group>";
 		};
 		02BBD5C0254C3C9A00058844 /* Model */ = {
@@ -396,8 +420,8 @@
 		02E2924D254C704D0088E7A6 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				0287B58F258171B600EDCE2D /* ViewController */,
 				02E29256254C724C0088E7A6 /* CustomCells */,
-				02E2924E254C70630088E7A6 /* MovieDetailsViewController.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";

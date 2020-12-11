@@ -12,7 +12,7 @@ class NowPlayingViewController: UIViewController {
     private var viewModel: NowPlayingViewModel
     
     private var subscriptions = Set<AnyCancellable>()
-        
+    
     //MARK: Properties
     lazy var collectionView: UICollectionView = {
         let collectionView = UICollectionView(frame: self.view.frame, collectionViewLayout: UICollectionViewFlowLayout())
@@ -29,7 +29,7 @@ class NowPlayingViewController: UIViewController {
     }()
     
     //MARK: Init
-    init(viewModel: NowPlayingViewModel = NowPlayingViewModel()) {
+    init(viewModel: NowPlayingViewModel) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
     }
@@ -41,24 +41,20 @@ class NowPlayingViewController: UIViewController {
 
 //MARK: - Lifecycle
 extension NowPlayingViewController {
-   
-    //MARK: Lifecycle
-    override func viewWillAppear(_ animated: Bool) {
-        setupBindings()
-    }
     
+    //MARK: Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
+        setupBindings()
     }
     
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        for subscription in subscriptions {
-            subscription.cancel()
-        }
-        subscriptions.removeAll()
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        viewModel.dataLoaderSubject.send(true)
+        navigationController?.setNavigationBarHidden(true, animated: false)
     }
+    
 }
 
 //MARK: - UI
@@ -93,30 +89,48 @@ extension NowPlayingViewController {
 //MARK: - Methods
 extension NowPlayingViewController {
     private func setupBindings() {
-        viewModel.fetchItems().store(in: &subscriptions)
+        let loader = viewModel.fetchItems(with: viewModel.dataLoaderSubject)
+        loader.store(in: &subscriptions)
         
-        viewModel.movies
-            .sink(receiveValue: { [weak self] _ in
-                self?.collectionView.reloadData()
+        viewModel.shouldShowBlurLoaderSubject
+            .sink(receiveValue: { [weak self] shouldShowLoader in
+                self?.showLoader(shouldShowLoader)
             })
             .store(in: &subscriptions)
+        
+        viewModel.screenDataReadySubject
+            .map({ [weak self] state in
+                switch state {
+                case .reloadAll:
+                    self?.collectionView.reloadData()
+                case .reloadCell(let index):
+                    let indexPath = IndexPath(item: index, section: 0)
+                    self?.collectionView.reloadItems(at: [indexPath])
+                }
+            })
+            .sink(receiveValue: { _ in })
+            .store(in: &subscriptions)
+        
+        let buttonTappedListener = viewModel.attachButtonClickListener(listener: viewModel.buttonTappedSubject)
+        buttonTappedListener.store(in: &subscriptions)
+        
     }
     
-    private func updateButtonState(ofType type: CustomButtonType, ofId id: Int){
-        if type == .watched {
-            viewModel.updateWatched(for: id)
+    private func showLoader( _ shouldShowLoader: Bool) {
+        if shouldShowLoader {
+            showBlurLoader()
         } else {
-            viewModel.updateFavourite(for: id)
+            removeBlurLoader()
         }
+    }
+    
+    private func updateButtonState(for action: Action){
+        viewModel.buttonTappedSubject.send(action)
     }
     
     private func configureRefreshControl() {
         collectionView.refreshControl = refreshControl
         refreshControl.addTarget(self, action: #selector(refresh), for: .valueChanged)
-    }
-    
-    @objc func refresh() {
-        collectionView.reloadData()
     }
     
     private func configureCollectionView() {
@@ -125,12 +139,18 @@ extension NowPlayingViewController {
         
         collectionView.register(NowPlayingCollectionCell.self, forCellWithReuseIdentifier: NowPlayingCollectionCell.reuseIdentifier)
     }
+    
+    //MARK: Actions
+    @objc func refresh() {
+        viewModel.dataLoaderSubject.send(false)
+        refreshControl.endRefreshing()
+    }
 }
 
 //MARK: - CollectionViewDelegate
 extension NowPlayingViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        let id = viewModel.movies.value[indexPath.row].id
+        let id = viewModel.screenData[indexPath.row].id
         
         let movieDetailsController = MovieDetailsViewController(movieId: id)
         
@@ -141,18 +161,18 @@ extension NowPlayingViewController: UICollectionViewDelegate {
 //MARK: - CollectionViewDataSource
 extension NowPlayingViewController: UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return viewModel.movies.value.count
+        return viewModel.screenData.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell: NowPlayingCollectionCell = collectionView.dequeue(for: indexPath)
-    
-        let movieRepresentable = viewModel.movies.value[indexPath.row]
+        
+        let movieRepresentable = viewModel.screenData[indexPath.row]
         
         cell.configure(withMovieRepresentable: movieRepresentable)
         
-        cell.shouldChangeButtonState = { [weak self] (type, id) in
-            self?.updateButtonState(ofType: type, ofId: id)
+        cell.shouldChangeButtonState = { [weak self] action in
+            self?.updateButtonState(for: action)
         }
         
         return cell

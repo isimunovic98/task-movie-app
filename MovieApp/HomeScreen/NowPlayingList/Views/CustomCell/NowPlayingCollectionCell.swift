@@ -7,12 +7,17 @@
 
 import UIKit
 
+enum Action {
+    case watchedTapped(Int)
+    case favouritedTapped(Int)
+}
+
 class NowPlayingCollectionCell: UICollectionViewCell {
     
     //MARK: Properties
     var id: Int!
     
-    var shouldChangeButtonState: ((CustomButtonType, Int) -> Void)?
+    var shouldChangeButtonState: ((Action) -> Void)?
 
     let moviePosterImageView: UIImageView = {
         let imageView = UIImageView()
@@ -150,7 +155,7 @@ extension NowPlayingCollectionCell {
         movieTitleLabel.text = movieRepresentable.title
         movieOverviewLabel.text = movieRepresentable.overview
         watchedButton.isSelected = movieRepresentable.watched
-        favouritesButton.isSelected = movieRepresentable.favourite
+        favouritesButton.isSelected = movieRepresentable.favourited
     }
     
     fileprivate func setupButtonActions() {
@@ -161,11 +166,11 @@ extension NowPlayingCollectionCell {
     
     //MARK: Actions
     @objc func watchedButtonTapped() {
-        shouldChangeButtonState?(watchedButton.type, id)
+        shouldChangeButtonState?(Action.watchedTapped(id))
     }
     
     @objc func favouriteButtonTapped() {
-        shouldChangeButtonState?(favouritesButton.type, id)
+        shouldChangeButtonState?(Action.favouritedTapped(id))
     }
 }
 
