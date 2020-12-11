@@ -6,7 +6,6 @@
 //
 
 import UIKit
-
 enum Action {
     case watchedTapped(Int)
     case favouritedTapped(Int)
@@ -16,8 +15,6 @@ class NowPlayingCollectionCell: UICollectionViewCell {
     
     //MARK: Properties
     var id: Int!
-    
-    var shouldChangeButtonState: ((Action) -> Void)?
 
     let moviePosterImageView: UIImageView = {
         let imageView = UIImageView()
@@ -51,14 +48,14 @@ class NowPlayingCollectionCell: UICollectionViewCell {
         return label
     }()
     
-    let watchedButton: WatchedCustomButton = {
-        let button = WatchedCustomButton()
+    let watchedButton: ActionButton = {
+        let button = ActionButton(.watched)
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
     
-    let favouritesButton: FavouritesCustomButton = {
-        let button = FavouritesCustomButton()
+    let favouritesButton: ActionButton = {
+        let button = ActionButton(.favourited)
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
@@ -86,7 +83,6 @@ extension NowPlayingCollectionCell {
         setupAppearance()
         addSubviewsToContentView()
         setupConstraints()
-        setupButtonActions()
     }
     
     fileprivate func setupAppearance() {
@@ -149,28 +145,14 @@ extension NowPlayingCollectionCell {
 extension NowPlayingCollectionCell {
     func configure(withMovieRepresentable movieRepresentable: MovieRepresentable) {
         self.id = movieRepresentable.id
-        
         moviePosterImageView.setImageFromUrl(Constants.IMAGE_BASE_PATH + movieRepresentable.posterPath)
         yearOfReleaseLabel.text = movieRepresentable.releaseDate.extractYear
         movieTitleLabel.text = movieRepresentable.title
         movieOverviewLabel.text = movieRepresentable.overview
         watchedButton.isSelected = movieRepresentable.watched
         favouritesButton.isSelected = movieRepresentable.favourited
-    }
-    
-    fileprivate func setupButtonActions() {
-        watchedButton.addTarget(self, action: #selector(watchedButtonTapped), for: .touchUpInside)
-        favouritesButton.addTarget(self, action: #selector(favouriteButtonTapped), for: .touchUpInside)
-    }
-
-    
-    //MARK: Actions
-    @objc func watchedButtonTapped() {
-        shouldChangeButtonState?(Action.watchedTapped(id))
-    }
-    
-    @objc func favouriteButtonTapped() {
-        shouldChangeButtonState?(Action.favouritedTapped(id))
+        watchedButton.setAssociatedMovieId(id)
+        favouritesButton.setAssociatedMovieId(id)
     }
 }
 

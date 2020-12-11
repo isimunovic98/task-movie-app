@@ -17,10 +17,11 @@ enum State {
 class NowPlayingViewModel {
     var screenData: [MovieRepresentable] = []
     
+    let actionButtonTappedSubject = PassthroughSubject<ActionButton, Never>()
+    
     let screenDataReadySubject = PassthroughSubject<State, Never>()
     let dataLoaderSubject = CurrentValueSubject<Bool, Never>(true)
     let shouldShowBlurLoaderSubject = PassthroughSubject<Bool, Never>()
-    let buttonTappedSubject = PassthroughSubject<Action, Never>()
     
     func fetchItems(with dataLoader: CurrentValueSubject<Bool, Never>) -> AnyCancellable {
        return dataLoader
@@ -41,28 +42,25 @@ class NowPlayingViewModel {
                 self.shouldShowBlurLoaderSubject.send(false)
             })
     }
-    
-    #warning("I would like to call screenDataReadySubject.send(.reloadCell(index)) in sink but I'm not sure whats the best way to get index")
-    func attachButtonClickListener(listener: PassthroughSubject<Action, Never>) -> AnyCancellable {
+    func attachActionButtonClickListener(listener: PassthroughSubject<ActionButton, Never>) -> AnyCancellable {
         return listener
-            .map({ [unowned self] action -> [MovieRepresentable] in
-                self.updateStatus(in: screenData, for: action)
+            .map({ [unowned self] button -> [MovieRepresentable] in
+                self.updateStatus(in: screenData, onTapped: button)
             })
             .sink(receiveValue: {
                 self.screenData = $0
             })
-
     }
 }
 
 //MARK: - Private Methods
 private extension NowPlayingViewModel {
-    func updateStatus(in screenData: [MovieRepresentable], for action: Action) -> [MovieRepresentable] {
-        switch action {
-        case .watchedTapped(let id):
-            return updateWatched(of: id, in: screenData)
-        case .favouritedTapped(let id):
-            return updateFavourited(of: id, in: screenData)
+    func updateStatus(in screenData: [MovieRepresentable], onTapped button: ActionButton) -> [MovieRepresentable] {
+        switch button.type {
+        case .watched:
+            return updateWatched(of: button.associatedMovieId!, in: screenData)
+        case .favourited:
+            return updateFavourited(of: button.associatedMovieId!, in: screenData)
         }
     }
     

@@ -27,7 +27,7 @@ class NowPlayingViewController: UIViewController {
         control.tintColor = .white
         return control
     }()
-    
+
     //MARK: Init
     init(viewModel: NowPlayingViewModel) {
         self.viewModel = viewModel
@@ -110,9 +110,8 @@ extension NowPlayingViewController {
             })
             .sink(receiveValue: { _ in })
             .store(in: &subscriptions)
-        
-        let buttonTappedListener = viewModel.attachButtonClickListener(listener: viewModel.buttonTappedSubject)
-        buttonTappedListener.store(in: &subscriptions)
+    
+        viewModel.attachActionButtonClickListener(listener: viewModel.actionButtonTappedSubject).store(in: &subscriptions)
         
     }
     
@@ -124,8 +123,8 @@ extension NowPlayingViewController {
         }
     }
     
-    private func updateButtonState(for action: Action){
-        viewModel.buttonTappedSubject.send(action)
+    private func processButtonTap(of button: ActionButton) {
+        viewModel.actionButtonTappedSubject.send(button)
     }
     
     private func configureRefreshControl() {
@@ -170,11 +169,12 @@ extension NowPlayingViewController: UICollectionViewDataSource {
         let movieRepresentable = viewModel.screenData[indexPath.row]
         
         cell.configure(withMovieRepresentable: movieRepresentable)
-        
-        cell.shouldChangeButtonState = { [weak self] action in
-            self?.updateButtonState(for: action)
+        cell.watchedButton.buttonTapped = { [weak self] button in
+            self?.processButtonTap(of: button)
         }
-        
+        cell.favouritesButton.buttonTapped = { [weak self] button in
+            self?.processButtonTap(of: button)
+        }
         return cell
     }
 }
