@@ -9,7 +9,7 @@ import Combine
 
 class FavouriteListViewController: UIViewController, ReusableView {
     //MARK: Properties
-    var viewModel: FavouritesViewModel
+    var viewModel: LabeledMoviesViewModel
     
     var subscriptions = Set<AnyCancellable>()
     
@@ -21,7 +21,7 @@ class FavouriteListViewController: UIViewController, ReusableView {
         return tableView
     }()
 
-    init(viewModel: FavouritesViewModel) {
+    init(viewModel: LabeledMoviesViewModel) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
     }
@@ -36,7 +36,7 @@ class FavouriteListViewController: UIViewController, ReusableView {
 extension FavouriteListViewController {
     
     override func viewWillAppear(_ animated: Bool) {
-        viewModel.fetchItems()
+        viewModel.fetchScreenData()
     }
     
     override func viewDidLoad() {

@@ -10,7 +10,7 @@ import Combine
 
 class WatchedListViewController: UIViewController, ReusableView {
     //MARK: Properties
-    var viewModel: WatchedViewModel
+    var viewModel: LabeledMoviesViewModel
     
     var subscriptions = Set<AnyCancellable>()
     
@@ -22,7 +22,7 @@ class WatchedListViewController: UIViewController, ReusableView {
         return tableView
     }()
     
-    init(viewModel: WatchedViewModel) {
+    init(viewModel: LabeledMoviesViewModel) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
     }
@@ -36,7 +36,7 @@ class WatchedListViewController: UIViewController, ReusableView {
 extension WatchedListViewController {
     
     override func viewWillAppear(_ animated: Bool) {
-        viewModel.fetchItems()
+        viewModel.fetchScreenData()
     }
     
     override func viewDidLoad() {
