@@ -10,43 +10,61 @@ import Combine
 
 class MovieDetailsViewModel {
     var id: Int
-    var screenData = CurrentValueSubject<[RowItem], Never>([])
+    var movieRepresentable: MovieRepresentable!
+    var screenData: [RowItem] = []
     
-    private var updateWatched: AnyPublisher<Void, Never> = PassthroughSubject<Void, Never>().eraseToAnyPublisher()
-    private var subs = Set<AnyCancellable>()
+    let shouldShowBlurLoaderSubject = PassthroughSubject<Bool, Never>()
+    let screenDataReadySubject = PassthroughSubject<Void, Never>()
+    let dataLoaderSubject = PassthroughSubject<Bool, Never>()
+    let buttonTappedSubject = PassthroughSubject<Action, Never>()
     
     init(movieId: Int) {
         self.id = movieId
     }
     
-    
-    func attachViewEventListener(updateWatched: AnyPublisher<Void, Never>) {
-        self.updateWatched = updateWatched
-        
-        updateWatched
-            .sink(receiveValue: {
-                self.changeWatchedButtonState()
+    func fetchItems(dataLoader: PassthroughSubject<Bool, Never>) -> AnyCancellable {
+        return dataLoader
+            .flatMap { [unowned self] value -> AnyPublisher<MovieDetails, Error> in
+                self.shouldShowBlurLoaderSubject.send(true)
+                return APIService.fetchItems(from: Constants.MovieDetails.response + String(id) + Constants.MovieDetails.apiKey, for: MovieDetails.self)
+            }
+            .map{ [unowned self] movieDetails in
+                self.createScreenData(from: movieDetails)
+            }
+            .sink(receiveCompletion: { _ in
+                //Error handling
+            }, receiveValue: { [unowned self] screenData in
+                self.screenData = screenData
+                self.screenDataReadySubject.send()
+                self.shouldShowBlurLoaderSubject.send(false)
             })
-            .store(in: &subs)
     }
     
-    func fetchMovieDetails() -> AnyCancellable {
-        return APIService.fetchItems(from: MovieDetailsViewController.response + String(id) + MovieDetailsViewController.apiKey, for: MovieDetails.self)
-            .map({
-                self.createScreenData(from: $0)
+    func attachButtonClickListener(listener: PassthroughSubject<Action, Never>) -> AnyCancellable {
+        return listener
+            .map({ [unowned self] action in
+                self.updateStatus(in: movieRepresentable, for: action)
             })
-            .sink(receiveCompletion: { _ in
-                //error handling
-            }, receiveValue: { rowItems in
-                self.screenData.value = rowItems
+            .sink(receiveValue: { [unowned self] _ in
+                self.dataLoaderSubject.send(false)
             })
     }
     
     
 }
-
+#warning("this is a but funky to me, maybe having 'watched' and 'fav' properties also? Maybe having function to change values in 'InfoItem' so i dont have to call dataLoaderSubject in line 49, instead have the function return new info item, tho that seems a lot of code then")
 extension MovieDetailsViewModel {
+    func updateStatus(in movies: MovieRepresentable, for action: Action) {
+        switch action {
+        case .watchedTapped(let id):
+            CoreDataHelper.updateWatched(withId: id, !movieRepresentable.watched)
+        case .favouritedTapped(let id):
+            CoreDataHelper.updateFavourited(withId: id, !movieRepresentable.favourited)
+        }
+    }
+    
     private func createScreenData(from movieDetails: MovieDetails) -> [RowItem] {
+        movieRepresentable = MovieRepresentable(movieDetails)
         var rowItems = [RowItem]()
         rowItems.append(createInfoItem(for: id, with: movieDetails.posterPath))
         rowItems.append(RowItem(content: movieDetails.title , type: .title))
@@ -61,17 +79,5 @@ extension MovieDetailsViewModel {
         let dbMoview = MovieEntity.findByID(id)
         return RowItem(content: InfoItem(posterPath: posterPath, watched: dbMoview?.watched ?? false, favourited: dbMoview?.favourite ?? false) , type: .poster)
         
-    }
-    
-    private func changeWatchedButtonState() {
-        for item in screenData.value {
-            if let infoItem = item.content as? InfoItem {
-                let newState = !infoItem.watched
-                var newItem = infoItem
-                newItem.watched = newState
-                screenData.value[0].content = newItem
-                CoreDataHelper.updateWatched(withId: id, newState)
-            }
-        }
     }
 }
