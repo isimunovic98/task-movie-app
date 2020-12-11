@@ -21,7 +21,7 @@ class FavouriteListViewController: UIViewController, ReusableView {
         return tableView
     }()
 
-    init(viewModel: FavouritesViewModel = FavouritesViewModel()) {
+    init(viewModel: FavouritesViewModel) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
     }
@@ -36,19 +36,13 @@ class FavouriteListViewController: UIViewController, ReusableView {
 extension FavouriteListViewController {
     
     override func viewWillAppear(_ animated: Bool) {
-        setupBindings()
+        viewModel.fetchItems()
     }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
-    }
-    
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        for subscription in subscriptions {
-            subscription.cancel()
-        }
-        subscriptions.removeAll()
+        setupBindings()
     }
 }
 
@@ -85,19 +79,20 @@ extension FavouriteListViewController {
 //MARK: - Methods
 extension FavouriteListViewController {
     func setupBindings(){
-        viewModel.fetchFavouritedMovies()
-        
-        viewModel.favouritedMovies
+        viewModel.screenDataReadySubject
             .sink(receiveValue: { [weak self] _ in
                 self?.tableView.reloadData()
             })
             .store(in: &subscriptions)
+        
+        let buttonTappedListener = viewModel.attachButtonTappedListener(listener: viewModel.buttonTappedSubject)
+        buttonTappedListener.store(in: &subscriptions)
     }
 }
 
 extension FavouriteListViewController: CellDelegate {
     func onButtonTapped(ofId id: Int) {
-        viewModel.updateFavourite(ofId: id)
+        viewModel.buttonTappedSubject.send(id)
     }
     
 }
@@ -109,7 +104,7 @@ extension FavouriteListViewController: UITableViewDelegate, UITableViewDataSourc
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell: WatchedFavouriteCell = tableView.dequeue(for: indexPath)
         
-        let movieRepresentable = viewModel.favouritedMovies.value[indexPath.section]
+        let movieRepresentable = viewModel.screenData[indexPath.row]
         
         cell.configure(withMovieRepresentable: movieRepresentable, forType: FavouriteListViewController.reuseIdentifier)
         
@@ -118,22 +113,8 @@ extension FavouriteListViewController: UITableViewDelegate, UITableViewDataSourc
         return cell
     }
     
-    func numberOfSections(in tableView: UITableView) -> Int {
-        return viewModel.favouritedMovies.value.count
-    }
-    
-    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-        return Constants.CELL_SPACING
-    }
-    
-    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-        let headerView = UIView()
-        headerView.backgroundColor = UIColor(named: "backgroundColor")
-        return headerView
-    }
-    
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 1
+        viewModel.screenData.count
     }
     
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
@@ -141,7 +122,7 @@ extension FavouriteListViewController: UITableViewDelegate, UITableViewDataSourc
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let id = viewModel.favouritedMovies.value[indexPath.section].id
+        let id = viewModel.screenData[indexPath.row].id
         
         let movieDetailsController = MovieDetailsViewController(movieId: id)
         

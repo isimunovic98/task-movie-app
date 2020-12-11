@@ -64,6 +64,7 @@ class WatchedFavouriteCell: UITableViewCell {
 
 //MARK: - UI
 extension WatchedFavouriteCell {
+    
     fileprivate func setupUI() {
         setupAppearance()
         addSubviewsToContentView()
@@ -98,7 +99,6 @@ extension WatchedFavouriteCell {
         movieTitleLabel.snp.makeConstraints { (make) in
             make.top.trailing.equalTo(contentView).inset(10)
             make.leading.equalTo(moviePosterImageView.snp.trailing).offset(10)
-            make.bottom.equalTo(movieOverviewLabel.snp.top)
         }
         
         movieOverviewLabel.snp.makeConstraints { (make) in
@@ -106,6 +106,12 @@ extension WatchedFavouriteCell {
             make.leading.trailing.equalTo(movieTitleLabel)
         }
         
+    }
+    
+    override func layoutSubviews() {
+        super.layoutSubviews()
+
+        contentView.frame = contentView.frame.inset(by: UIEdgeInsets(top: 10, left: 0, bottom: 10, right: 0))
     }
 }
 
@@ -124,7 +130,7 @@ extension WatchedFavouriteCell {
         setupButton(forType: type)
         
         if type == FavouriteListViewController.reuseIdentifier {
-             button?.isSelected = movieRepresentable.favourite
+             button?.isSelected = movieRepresentable.favourited
          } else {
              button?.isSelected = movieRepresentable.watched
          }

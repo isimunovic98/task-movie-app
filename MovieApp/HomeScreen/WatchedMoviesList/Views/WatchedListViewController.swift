@@ -22,7 +22,7 @@ class WatchedListViewController: UIViewController, ReusableView {
         return tableView
     }()
     
-    init(viewModel: WatchedViewModel = WatchedViewModel()) {
+    init(viewModel: WatchedViewModel) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
     }
@@ -36,21 +36,13 @@ class WatchedListViewController: UIViewController, ReusableView {
 extension WatchedListViewController {
     
     override func viewWillAppear(_ animated: Bool) {
-        setupBindings()
+        viewModel.fetchItems()
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
-    }
-
-    
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        for subscription in subscriptions {
-            subscription.cancel()
-        }
-        subscriptions.removeAll()
+        setupBindings()
     }
 }
 
@@ -88,21 +80,23 @@ extension WatchedListViewController {
 //MARK: - Methods
 extension WatchedListViewController {
     func setupBindings(){
-        viewModel.fetchWatchedMovies()
-        
-        viewModel.watchedMovies
+        viewModel.screenDataReadySubject
             .sink(receiveValue: { [weak self] _ in
                 self?.tableView.reloadData()
             })
             .store(in: &subscriptions)
+        
+        let buttonTappedListener = viewModel.attachButtonTappedListener(listener: viewModel.buttonTappedSubject)
+        buttonTappedListener.store(in: &subscriptions)
     }
+    
 }
 
 extension WatchedListViewController: CellDelegate {
     func onButtonTapped(ofId id: Int) {
-        viewModel.updateWatched(ofId: id)
+        viewModel.buttonTappedSubject.send(id)
     }
-
+    
 }
 
 //MARK: - TableViewDelegate
@@ -111,7 +105,7 @@ extension WatchedListViewController: UITableViewDelegate, UITableViewDataSource 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell: WatchedFavouriteCell = tableView.dequeue(for: indexPath)
         
-        let movieRepresentable = viewModel.watchedMovies.value[indexPath.section]
+        let movieRepresentable = viewModel.screenData[indexPath.row]
         
         cell.configure(withMovieRepresentable: movieRepresentable, forType: WatchedListViewController.reuseIdentifier)
         
@@ -120,22 +114,8 @@ extension WatchedListViewController: UITableViewDelegate, UITableViewDataSource 
         return cell
     }
     
-    func numberOfSections(in tableView: UITableView) -> Int {
-        return self.viewModel.watchedMovies.value.count
-    }
-    
-    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-        return Constants.CELL_SPACING
-    }
-    
-    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-        let headerView = UIView()
-        headerView.backgroundColor = UIColor(named: "backgroundColor")
-        return headerView
-    }
-    
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 1
+        return viewModel.screenData.count
     }
     
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
@@ -143,10 +123,10 @@ extension WatchedListViewController: UITableViewDelegate, UITableViewDataSource 
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let id = viewModel.watchedMovies.value[indexPath.section].id
-
+        let id = viewModel.screenData[indexPath.row].id
+        
         let movieDetailsController = MovieDetailsViewController(movieId: id)
-
+        
         navigationController?.pushViewController(movieDetailsController, animated: false)
     }
     
