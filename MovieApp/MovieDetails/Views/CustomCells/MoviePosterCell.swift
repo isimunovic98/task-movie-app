@@ -8,6 +8,8 @@
 import UIKit
 
 class MoviePosterCell: UITableViewCell {
+    
+    var shouldChangeButtonState: ((CustomButtonType) -> Void)?
 
     //MARK: Properties
     let moviePosterImageView: UIImageView = {
@@ -22,18 +24,33 @@ class MoviePosterCell: UITableViewCell {
         return layer
     }()
     
+    let watchedButton: WatchedCustomButton = {
+        let button = WatchedCustomButton()
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
+    
+    let favouritesButton: FavouritesCustomButton = {
+        let button = FavouritesCustomButton()
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
+    
     //MARK: Init
     override required init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         setupUI()
+        setupButtonActions()
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
-    func setMoviePoster(from url: String) {
-        self.moviePosterImageView.setImageFromUrl(Constants.IMAGE_BASE_PATH + url)
+    func configure(with item: InfoItem) {
+        moviePosterImageView.setImageFromUrl(Constants.IMAGE_BASE_PATH + item.posterPath)
+        watchedButton.isSelected = item.watched
+        favouritesButton.isSelected = item.favourited
     }
     
 }
@@ -42,28 +59,52 @@ class MoviePosterCell: UITableViewCell {
 extension MoviePosterCell {
     
     func setupUI() {
-        self.backgroundColor = UIColor(named: "cellColor")
-        self.addSubview(moviePosterImageView)
-        moviePosterImageView.addSubview(gradientLayer)
+        backgroundColor = UIColor(named: "cellColor")
+        contentView.addSubview(moviePosterImageView)
+        contentView.addSubview(gradientLayer)
+        contentView.addSubview(watchedButton)
+        contentView.addSubview(favouritesButton)
         
         setupConstraints()
-        
     }
     
     func setupConstraints() {
-        let constraints = [
-            moviePosterImageView.topAnchor.constraint(equalTo: topAnchor),
-            moviePosterImageView.leadingAnchor.constraint(equalTo: leadingAnchor),
-            moviePosterImageView.trailingAnchor.constraint(equalTo: trailingAnchor),
-            moviePosterImageView.bottomAnchor.constraint(equalTo: bottomAnchor),
-            moviePosterImageView.heightAnchor.constraint(equalToConstant: 300),
-            
-            gradientLayer.topAnchor.constraint(equalTo: moviePosterImageView.topAnchor),
-            gradientLayer.leadingAnchor.constraint(equalTo: moviePosterImageView.leadingAnchor),
-            gradientLayer.trailingAnchor.constraint(equalTo: moviePosterImageView.trailingAnchor),
-            gradientLayer.bottomAnchor.constraint(equalTo: moviePosterImageView.bottomAnchor)
-        ]
+        moviePosterImageView.snp.makeConstraints { (make) in
+            make.edges.equalTo(contentView)
+            make.height.equalTo(350)
+        }
         
-        NSLayoutConstraint.activate(constraints)
+        gradientLayer.snp.makeConstraints { (make) in
+            make.edges.equalTo(moviePosterImageView)
+        }
+    
+        favouritesButton.snp.makeConstraints { (make) in
+            make.top.equalTo(moviePosterImageView)
+            make.trailing.equalTo(moviePosterImageView).offset(-15)
+            make.size.equalTo(45)
+        }
+        
+        watchedButton.snp.makeConstraints { (make) in
+            make.top.equalTo(moviePosterImageView)
+            make.trailing.equalTo(favouritesButton.snp.leading).offset(-15)
+            make.size.equalTo(45)
+        }
+        
+    }
+}
+
+extension MoviePosterCell {
+    func setupButtonActions() {
+        watchedButton.addTarget(self, action: #selector(watchedButtonTapped), for: .touchUpInside)
+        favouritesButton.addTarget(self, action: #selector(favouriteButtonTapped), for: .touchUpInside)
+    }
+    
+    //MARK: Actions
+    @objc func watchedButtonTapped() {
+        shouldChangeButtonState?(watchedButton.type)
+    }
+    
+    @objc func favouriteButtonTapped() {
+        shouldChangeButtonState?(favouritesButton.type)
     }
 }
