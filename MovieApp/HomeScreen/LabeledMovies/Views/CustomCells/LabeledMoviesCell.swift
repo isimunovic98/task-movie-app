@@ -64,6 +64,11 @@ class LabeledMoviesCell: UITableViewCell {
 
 //MARK: - UI
 extension LabeledMoviesCell {
+    override func layoutSubviews() {
+        super.layoutSubviews()
+
+        contentView.frame = contentView.frame.inset(by: UIEdgeInsets(top: 0, left: 0, bottom: 10, right: 0))
+    }
     
     fileprivate func setupUI() {
         setupAppearance()
@@ -86,9 +91,10 @@ extension LabeledMoviesCell {
     }
     
     fileprivate func setupConstraints() {
+        
         moviePosterImageView.snp.makeConstraints({ (make) in
-            make.top.leading.bottom.equalTo(contentView)
-            make.size.equalTo(150)
+            make.top.leading.equalTo(contentView)
+            make.size.equalTo(135)
         })
         
         yearOfReleaseLabel.snp.makeConstraints { (make) in
@@ -107,12 +113,7 @@ extension LabeledMoviesCell {
         }
         
     }
-    
-    override func layoutSubviews() {
-        super.layoutSubviews()
 
-        contentView.frame = contentView.frame.inset(by: UIEdgeInsets(top: 10, left: 0, bottom: 10, right: 0))
-    }
 }
 
 //MARK: - Methods
