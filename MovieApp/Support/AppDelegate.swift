@@ -20,11 +20,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         nowPlayingVC.tabBarItem.image = UIImage(named: "home")
         
         let watchedListVM = LabeledMoviesViewModel(type: .watched)
-        let watchedListVC = WatchedListViewController(viewModel: watchedListVM)
+        let watchedListVC = LabeledMoviesListViewController(viewModel: watchedListVM)
         watchedListVC.tabBarItem.image = UIImage(named: "watched")
         
         let favouritedVM = LabeledMoviesViewModel(type: .favourited)
-        let favouriteListVC = FavouriteListViewController(viewModel: favouritedVM)
+        let favouriteListVC = LabeledMoviesListViewController(viewModel: favouritedVM)
         favouriteListVC.tabBarItem.image = UIImage(named: "favourite")
         
         let tabBarController = UITabBarController()

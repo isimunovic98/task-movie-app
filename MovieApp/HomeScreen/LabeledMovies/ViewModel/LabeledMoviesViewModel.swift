@@ -14,7 +14,7 @@ enum LabeledMoviesType {
 }
 
 class LabeledMoviesViewModel {
-    private var type: LabeledMoviesType
+    var type: LabeledMoviesType
     var screenData: [MovieRepresentable] = []
     
     let screenDataReadySubject = PassthroughSubject<Void, Never>()

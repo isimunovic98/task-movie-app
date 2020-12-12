@@ -11,7 +11,7 @@ protocol CellDelegate: class {
     func onButtonTapped(ofId id: Int)
 }
 
-class WatchedFavouriteCell: UITableViewCell {
+class LabeledMoviesCell: UITableViewCell {
     
     //MARK: Properties
     var id: Int!
@@ -63,7 +63,7 @@ class WatchedFavouriteCell: UITableViewCell {
 }
 
 //MARK: - UI
-extension WatchedFavouriteCell {
+extension LabeledMoviesCell {
     
     fileprivate func setupUI() {
         setupAppearance()
@@ -116,9 +116,9 @@ extension WatchedFavouriteCell {
 }
 
 //MARK: - Methods
-extension WatchedFavouriteCell {
+extension LabeledMoviesCell {
     
-    func configure(withMovieRepresentable movieRepresentable: MovieRepresentable, forType type: String) {
+    func configure(withMovieRepresentable movieRepresentable: MovieRepresentable, forType type: LabeledMoviesType) {
         if let button = button {
             button.removeFromSuperview()
         }
@@ -129,16 +129,16 @@ extension WatchedFavouriteCell {
         movieOverviewLabel.text = movieRepresentable.overview
         setupButton(forType: type)
         
-        if type == FavouriteListViewController.reuseIdentifier {
-             button?.isSelected = movieRepresentable.favourited
-         } else {
+        if type == .watched {
              button?.isSelected = movieRepresentable.watched
+         } else {
+             button?.isSelected = movieRepresentable.favourited
          }
     }
     
-    fileprivate func setupButton(forType type: String) {
+    fileprivate func setupButton(forType type: LabeledMoviesType) {
         
-        if type == WatchedListViewController.reuseIdentifier {
+        if type == .watched {
             button = getWatchedListButton()
             self.button?.addTarget(self, action: #selector(buttonTapped), for: .touchUpInside)
         } else {
@@ -154,7 +154,7 @@ extension WatchedFavouriteCell {
 }
 
 //MARK - Button Logic
-extension WatchedFavouriteCell {
+extension LabeledMoviesCell {
     
     fileprivate func getWatchedListButton() -> WatchedCustomButton {
         
