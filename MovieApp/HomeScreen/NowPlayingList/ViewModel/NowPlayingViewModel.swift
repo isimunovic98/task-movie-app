@@ -25,17 +25,26 @@ class NowPlayingViewModel {
     
     func fetchItems(with dataLoader: CurrentValueSubject<Bool, Never>) -> AnyCancellable {
        return dataLoader
+        .subscribe(on: DispatchQueue.global(qos: .background))
+        .receive(on: DispatchQueue.global(qos: .background))
             .flatMap { [unowned self] value -> AnyPublisher<Movies, Error> in
                 self.shouldShowBlurLoaderSubject.send(true)
                 return APIService.fetchItems(from: Constants.ALL_MOVIES_URL, for: Movies.self)
             }
+        .subscribe(on: DispatchQueue.global(qos: .background))
+        .receive(on: RunLoop.main)
             .map{ [unowned self] movies in
                 movies.results.map{
                     self.createScreenData(from: $0)
                 }
             }
-            .sink(receiveCompletion: { _ in
-                //Error handling
+            .sink(receiveCompletion: { completion in
+                switch completion {
+                    case .finished:
+                        break
+                    case .failure(let anError):
+                        print("received error: ", anError)
+                }
             }, receiveValue: { [unowned self] moviesRepresentable in
                 self.screenData = moviesRepresentable
                 self.screenDataReadySubject.send(.reloadAll)
@@ -44,6 +53,8 @@ class NowPlayingViewModel {
     }
     func attachActionButtonClickListener(listener: PassthroughSubject<ActionButton, Never>) -> AnyCancellable {
         return listener
+            .subscribe(on: DispatchQueue.global(qos: .background))
+            .receive(on: RunLoop.main)
             .map({ [unowned self] button -> [MovieRepresentable] in
                 self.updateStatus(in: screenData, onTapped: button)
             })

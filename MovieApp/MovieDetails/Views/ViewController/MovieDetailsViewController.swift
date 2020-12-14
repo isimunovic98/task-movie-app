@@ -89,12 +89,16 @@ extension MovieDetailsViewController {
         viewModel.fetchItems(dataLoader: viewModel.dataLoaderSubject).store(in: &subscriptions)
         
         viewModel.screenDataReadySubject
+            .subscribe(on: DispatchQueue.global(qos: .background))
+            .receive(on: RunLoop.main)
             .sink(receiveValue: { [weak self] _ in
                 self?.tableView.reloadData()
             })
             .store(in: &subscriptions)
         
         viewModel.shouldShowBlurLoaderSubject
+            .subscribe(on: DispatchQueue.global(qos: .background))
+            .receive(on: RunLoop.main)
             .sink(receiveValue: { [weak self] showLoader in
                 self?.showLoader(showLoader)
             })

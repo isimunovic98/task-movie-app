@@ -73,14 +73,14 @@ private extension LabeledMoviesViewModel {
     func updateFavourited(of id: Int, in screenData: [MovieRepresentable], at index: Int) -> [MovieRepresentable] {
         let newState = !screenData[index].favourited
         screenData[index].favourited = newState
-        CoreDataHelper.updateFavourited(withId: id, newState)
+        CoreDataHelper.updateFavourited(withId: id)
         return screenData
     }
     
     func updateWatched(of id: Int, in screenData: [MovieRepresentable], at index: Int) -> [MovieRepresentable] {
         let newState = !screenData[index].watched
         screenData[index].watched = newState
-        CoreDataHelper.updateWatched(withId: id, newState)
+        CoreDataHelper.updateWatched(withId: id)
         return screenData
     }
 }

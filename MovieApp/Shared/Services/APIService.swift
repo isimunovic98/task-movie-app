@@ -9,6 +9,12 @@ import Foundation
 import Alamofire
 import Combine
 
+enum NetworkError: Error {
+    case invalidUrl
+    case invalidRequest
+    case jsonDecodingError(error: Error)
+}
+
 class APIService {
     
     static func fetch<T: Codable>(from url: String, of: T.Type,using completion: @escaping (_ data: T?,_ message: String) -> Void) {
@@ -27,13 +33,18 @@ class APIService {
     
     static func fetchItems<T: Codable>(from urlString: String, for: T.Type) -> AnyPublisher<T, Error>{
         guard let url = URL(string: urlString) else {
-            //invalid url
+            //if i had never could just return Just
             fatalError()
         }
         
         return URLSession.shared.dataTaskPublisher(for: url)
-            .receive(on: RunLoop.main)
-            .map{ $0.data }
+            .subscribe(on: DispatchQueue.global(qos: .background))
+            .tryMap { data, response -> Data in
+                guard response is HTTPURLResponse else {
+                    throw NetworkError.invalidRequest
+                }
+                return data
+            }
             .decode(type: T.self, decoder: JSONDecoder())
             .eraseToAnyPublisher()
     }

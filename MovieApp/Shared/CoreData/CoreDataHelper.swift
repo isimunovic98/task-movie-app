@@ -76,6 +76,10 @@ class CoreDataHelper {
     
     //UPDATE
     static func update(_ movieEntity: MovieEntity,_ watched: Bool,_ favourite: Bool ){
+        if watched == false, favourite == false {
+            deleteMovie(withId: Int(movieEntity.id))
+            return
+        }
         movieEntity.setValue(watched, forKey: "watched")
         movieEntity.setValue(favourite, forKey: "favourite")
         
@@ -85,19 +89,36 @@ class CoreDataHelper {
         }
     }
     
-    static func updateWatched(withId id: Int,_ watched: Bool) {
-        let appMovie = MovieEntity.findByID(id)
-        appMovie?.setValue(watched, forKey: "watched")
-        
+    static func updateWatched(withId id: Int) {
+        let movieEntity = MovieEntity.findByID(id)
+        if let movie = movieEntity {
+            let newState = !movie.watched
+            if newState == false && movie.favourite == false {
+                deleteMovie(withId: id)
+                return
+            }
+            movieEntity?.setValue(newState, forKey: "watched")
+        } else {
+            return
+        }
         do { try context.save() }
         catch {
             fatalError("Error saving movie")
         }
     }
     
-    static func updateFavourited(withId id: Int,_ favourite: Bool) {
-        let appMovie = MovieEntity.findByID(id)
-        appMovie?.setValue(favourite, forKey: "favourite")
+    static func updateFavourited(withId id: Int) {
+        let movieEntity = MovieEntity.findByID(id)
+        if let movie = movieEntity {
+            let newState = !movie.favourite
+            if newState == false && movie.watched == false {
+                deleteMovie(withId: id)
+                return
+            }
+            movieEntity?.setValue(newState, forKey: "favourite")
+        } else {
+            return
+        }
         
         do { try self.context.save() }
         catch {
@@ -116,6 +137,22 @@ class CoreDataHelper {
         catch { print(error) }
     }
     
+    private static func deleteMovie(withId id: Int) {
+        let deleteRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "MovieEntity")
+        deleteRequest.predicate = NSPredicate(format: "id = %d", id)//Predicate.init(format: "profileID==\(withID)")
+        if let result = try? context.fetch(deleteRequest) {
+            for object in result {
+                context.delete(object as! NSManagedObject)
+                print("deleted movie")
+            }
+        }
+        
+        do {
+            try context.save()
+        } catch {
+            fatalError("Cannot delete movie")
+        }
+    }
     //Methods
     
 

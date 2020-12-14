@@ -24,10 +24,14 @@ class MovieDetailsViewModel {
     
     func fetchItems(dataLoader: PassthroughSubject<Bool, Never>) -> AnyCancellable {
         return dataLoader
+            .subscribe(on: DispatchQueue.global(qos: .background))
+            .receive(on: DispatchQueue.global(qos: .background))
             .flatMap { [unowned self] value -> AnyPublisher<MovieDetails, Error> in
                 self.shouldShowBlurLoaderSubject.send(true)
                 return APIService.fetchItems(from: Constants.MovieDetails.response + String(id) + Constants.MovieDetails.apiKey, for: MovieDetails.self)
             }
+            .subscribe(on: DispatchQueue.global(qos: .background))
+            .receive(on: RunLoop.main)
             .map{ [unowned self] movieDetails in
                 self.createScreenData(from: movieDetails)
             }
@@ -42,6 +46,8 @@ class MovieDetailsViewModel {
     
     func attachButtonClickListener(listener: PassthroughSubject<Action, Never>) -> AnyCancellable {
         return listener
+            .subscribe(on: DispatchQueue.global(qos: .background))
+            .receive(on: RunLoop.main) // MUST BE MAIN CUZ updateStatus(line 63) is called which uses find by id whuch uses appdelegate
             .map({ [unowned self] action in
                 self.updateStatus(in: movieRepresentable, for: action)
             })
@@ -57,9 +63,15 @@ extension MovieDetailsViewModel {
     func updateStatus(in movies: MovieRepresentable, for action: Action) {
         switch action {
         case .watchedTapped(let id):
-            CoreDataHelper.updateWatched(withId: id, !movieRepresentable.watched)
+            if MovieEntity.findByID(id) == nil {
+                CoreDataHelper.save(movieRepresentable, false, false)
+            }
+            CoreDataHelper.updateWatched(withId: id)
         case .favouritedTapped(let id):
-            CoreDataHelper.updateFavourited(withId: id, !movieRepresentable.favourited)
+            if MovieEntity.findByID(id) == nil {
+                CoreDataHelper.save(movieRepresentable, false, false)
+            }
+            CoreDataHelper.updateFavourited(withId: id)
         }
     }
     

@@ -45,6 +45,7 @@ extension NowPlayingViewController {
     //MARK: Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
+        //CoreDataHelper.deleteAllData()
         setupUI()
         setupBindings()
     }
@@ -93,12 +94,16 @@ extension NowPlayingViewController {
         loader.store(in: &subscriptions)
         
         viewModel.shouldShowBlurLoaderSubject
+            .subscribe(on: DispatchQueue.global(qos: .background))
+            .receive(on: RunLoop.main)
             .sink(receiveValue: { [weak self] shouldShowLoader in
                 self?.showLoader(shouldShowLoader)
             })
             .store(in: &subscriptions)
         
         viewModel.screenDataReadySubject
+            .subscribe(on: DispatchQueue.global(qos: .background))
+            .receive(on: RunLoop.main)
             .map({ [weak self] state in
                 switch state {
                 case .reloadAll:
