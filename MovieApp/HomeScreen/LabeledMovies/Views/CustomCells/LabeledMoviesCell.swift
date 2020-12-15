@@ -7,18 +7,10 @@
 
 import UIKit
 
-protocol CellDelegate: class {
-    func onButtonTapped(ofId id: Int)
-}
-
 class LabeledMoviesCell: UITableViewCell {
     
     //MARK: Properties
-    var id: Int!
-    
-    var delegate: CellDelegate?
-    
-    var button: UIButton?
+    var button: ActionButton?
     
     let moviePosterImageView: UIImageView = {
         let imageView = UIImageView()
@@ -64,6 +56,11 @@ class LabeledMoviesCell: UITableViewCell {
 
 //MARK: - UI
 extension LabeledMoviesCell {
+    override func prepareForReuse() {
+        if let button = button {
+            button.removeFromSuperview()
+        }
+    }
     override func layoutSubviews() {
         super.layoutSubviews()
 
@@ -120,15 +117,12 @@ extension LabeledMoviesCell {
 extension LabeledMoviesCell {
     
     func configure(withMovieRepresentable movieRepresentable: MovieRepresentable, forType type: LabeledMoviesType) {
-        if let button = button {
-            button.removeFromSuperview()
-        }
-        self.id = movieRepresentable.id
         moviePosterImageView.setImageFromUrl(Constants.IMAGE_BASE_PATH + movieRepresentable.posterPath)
         yearOfReleaseLabel.text = movieRepresentable.releaseDate.extractYear
         movieTitleLabel.text = movieRepresentable.title
         movieOverviewLabel.text = movieRepresentable.overview
         setupButton(forType: type)
+        button?.setAssociatedMovieId(movieRepresentable.id)
         
         if type == .watched {
              button?.isSelected = movieRepresentable.watched
@@ -141,26 +135,19 @@ extension LabeledMoviesCell {
         
         if type == .watched {
             button = getWatchedListButton()
-            self.button?.addTarget(self, action: #selector(buttonTapped), for: .touchUpInside)
         } else {
             button = getFavouriteListButton()
-            self.button?.addTarget(self, action: #selector(buttonTapped), for: .touchUpInside)
         }
-    }
-    
-    //MARK: Actions
-    @objc func buttonTapped() {
-        delegate?.onButtonTapped(ofId: id)
     }
 }
 
 //MARK - Button Logic
 extension LabeledMoviesCell {
     
-    fileprivate func getWatchedListButton() -> WatchedCustomButton {
+    fileprivate func getWatchedListButton() -> ActionButton {
         
-        let interactionButton: WatchedCustomButton = {
-            let button = WatchedCustomButton()
+        let interactionButton: ActionButton = {
+            let button = ActionButton(.watched)
             button.translatesAutoresizingMaskIntoConstraints = false
             button.isSelected = true
             return button
@@ -172,10 +159,10 @@ extension LabeledMoviesCell {
         return interactionButton
     }
     
-    fileprivate func getFavouriteListButton() -> FavouritesCustomButton {
+    fileprivate func getFavouriteListButton() -> ActionButton {
         
-        let interactionButton: FavouritesCustomButton = {
-            let button = FavouritesCustomButton()
+        let interactionButton: ActionButton = {
+            let button = ActionButton(.favourited)
             button.translatesAutoresizingMaskIntoConstraints = false
             button.isSelected = true
             return button
@@ -183,7 +170,6 @@ extension LabeledMoviesCell {
         
         contentView.addSubview(interactionButton)
         setButtonConstraints(interactionButton)
-        
         return interactionButton
     }
     

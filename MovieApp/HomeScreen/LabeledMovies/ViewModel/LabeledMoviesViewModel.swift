@@ -17,8 +17,9 @@ class LabeledMoviesViewModel {
     var type: LabeledMoviesType
     var screenData: [MovieRepresentable] = []
     
+    let actionButtonTappedSubject = PassthroughSubject<ActionButton, Never>()
     let screenDataReadySubject = PassthroughSubject<Void, Never>()
-    let buttonTappedSubject = PassthroughSubject<Int, Never>()
+    let fetchScreenDataSubject = PassthroughSubject<Void, Never>()
     
     init(type: LabeledMoviesType) {
         self.type = type
@@ -27,21 +28,27 @@ class LabeledMoviesViewModel {
 }
 
 extension LabeledMoviesViewModel {
-    func fetchScreenData() {
-        switch type {
-        case .watched:
-            screenData = CoreDataHelper.fetchWatchedMovies()
-        case .favourited:
-            screenData = CoreDataHelper.fetchFavouritedMovies()
+    func fetchScreenData(from subject: PassthroughSubject<Void, Never>) -> AnyCancellable{
+        return subject.map { [unowned self] _ -> [MovieRepresentable] in
+            switch type {
+            case .watched:
+                return CoreDataHelper.fetchWatchedMovies()
+            case .favourited:
+                return CoreDataHelper.fetchFavouritedMovies()
+            }
         }
-        
-        screenDataReadySubject.send()
+        .sink { [unowned self] screenData in
+            self.screenData = screenData
+            self.screenDataReadySubject.send()
+        }
     }
     
-    func attachButtonTappedListener(listener: PassthroughSubject<Int, Never>) -> AnyCancellable {
+    func attachActionButtonClickListener(listener: PassthroughSubject<ActionButton, Never>) -> AnyCancellable {
         return listener
-            .map({ [unowned self] id in
-                self.updateStatus(of: id, in: screenData)
+            .subscribe(on: DispatchQueue.global(qos: .background))
+            .receive(on: RunLoop.main)
+            .map({ [unowned self] button -> [MovieRepresentable] in
+                self.updateStatus(in: screenData, onTapped: button)
             })
             .sink(receiveValue: { [unowned self] newScreenData in
                 self.screenData = newScreenData
@@ -51,33 +58,39 @@ extension LabeledMoviesViewModel {
 }
 
 private extension LabeledMoviesViewModel {
-    func updateStatus(of id: Int, in screenData: [MovieRepresentable]) -> [MovieRepresentable] {
+    func updateStatus(in screenData: [MovieRepresentable], onTapped button: ActionButton) -> [MovieRepresentable] {
         var indexOfMovie: Int?
 
         for (index, movie) in screenData.enumerated() {
-            if movie.id == id {
+            if movie.id == button.associatedMovieId {
                 indexOfMovie = index
             }
         }
 
         guard let indexToUpdate = indexOfMovie else { return screenData }
         
-        switch type {
+        switch button.type {
         case .watched:
-            return updateWatched(of: id, in: screenData, at: indexToUpdate)
+            return updateWatched(of: button.associatedMovieId, in: screenData, at: indexToUpdate)
         case .favourited:
-            return updateFavourited(of: id, in: screenData, at: indexToUpdate)
+            return updateFavourited(of: button.associatedMovieId, in: screenData, at: indexToUpdate)
         }
     }
     
-    func updateFavourited(of id: Int, in screenData: [MovieRepresentable], at index: Int) -> [MovieRepresentable] {
+    func updateFavourited(of id: Int?, in screenData: [MovieRepresentable], at index: Int) -> [MovieRepresentable] {
+        guard let id = id else {
+            return []
+        }
         let newState = !screenData[index].favourited
         screenData[index].favourited = newState
         CoreDataHelper.updateFavourited(withId: id)
         return screenData
     }
     
-    func updateWatched(of id: Int, in screenData: [MovieRepresentable], at index: Int) -> [MovieRepresentable] {
+    func updateWatched(of id: Int?, in screenData: [MovieRepresentable], at index: Int) -> [MovieRepresentable] {
+        guard let id = id else {
+            return []
+        }
         let newState = !screenData[index].watched
         screenData[index].watched = newState
         CoreDataHelper.updateWatched(withId: id)

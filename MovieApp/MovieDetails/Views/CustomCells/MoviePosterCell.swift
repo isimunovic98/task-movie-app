@@ -9,8 +9,6 @@ import UIKit
 
 class MoviePosterCell: UITableViewCell {
     
-    var shouldChangeButtonState: ((CustomButtonType) -> Void)?
-
     //MARK: Properties
     let moviePosterImageView: UIImageView = {
         let imageView = UIImageView()
@@ -24,14 +22,14 @@ class MoviePosterCell: UITableViewCell {
         return layer
     }()
     
-    let watchedButton: WatchedCustomButton = {
-        let button = WatchedCustomButton()
+    let watchedButton: ActionButton = {
+        let button = ActionButton(.watched)
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
     
-    let favouritesButton: FavouritesCustomButton = {
-        let button = FavouritesCustomButton()
+    let favouritesButton: ActionButton = {
+        let button = ActionButton(.favourited)
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
@@ -40,7 +38,6 @@ class MoviePosterCell: UITableViewCell {
     override required init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         setupUI()
-        setupButtonActions()
     }
     
     required init?(coder: NSCoder) {
@@ -90,21 +87,5 @@ extension MoviePosterCell {
             make.size.equalTo(45)
         }
         
-    }
-}
-
-extension MoviePosterCell {
-    func setupButtonActions() {
-        watchedButton.addTarget(self, action: #selector(watchedButtonTapped), for: .touchUpInside)
-        favouritesButton.addTarget(self, action: #selector(favouriteButtonTapped), for: .touchUpInside)
-    }
-    
-    //MARK: Actions
-    @objc func watchedButtonTapped() {
-        shouldChangeButtonState?(watchedButton.type)
-    }
-    
-    @objc func favouriteButtonTapped() {
-        shouldChangeButtonState?(favouritesButton.type)
     }
 }

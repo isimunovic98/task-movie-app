@@ -16,7 +16,7 @@ class MovieDetailsViewModel {
     let shouldShowBlurLoaderSubject = PassthroughSubject<Bool, Never>()
     let screenDataReadySubject = PassthroughSubject<Void, Never>()
     let dataLoaderSubject = PassthroughSubject<Bool, Never>()
-    let buttonTappedSubject = PassthroughSubject<Action, Never>()
+    let actionButtonTappedSubject = PassthroughSubject<ActionButton, Never>()
     
     init(movieId: Int) {
         self.id = movieId
@@ -28,7 +28,7 @@ class MovieDetailsViewModel {
             .receive(on: DispatchQueue.global(qos: .background))
             .flatMap { [unowned self] value -> AnyPublisher<MovieDetails, Error> in
                 self.shouldShowBlurLoaderSubject.send(true)
-                return APIService.fetchItems(from: Constants.MovieDetails.response + String(id) + Constants.MovieDetails.apiKey, for: MovieDetails.self)
+                return APIService.fetchItems(from: Constants.MovieDetails.response + String(id) + Constants.MovieDetails.apiKey, as: MovieDetails.self)
             }
             .subscribe(on: DispatchQueue.global(qos: .background))
             .receive(on: RunLoop.main)
@@ -44,12 +44,12 @@ class MovieDetailsViewModel {
             })
     }
     
-    func attachButtonClickListener(listener: PassthroughSubject<Action, Never>) -> AnyCancellable {
+    func attachButtonClickListener(listener: PassthroughSubject<ActionButton, Never>) -> AnyCancellable {
         return listener
             .subscribe(on: DispatchQueue.global(qos: .background))
-            .receive(on: RunLoop.main) // MUST BE MAIN CUZ updateStatus(line 63) is called which uses find by id whuch uses appdelegate
-            .map({ [unowned self] action in
-                self.updateStatus(in: movieRepresentable, for: action)
+            .receive(on: RunLoop.main)
+            .map({ [unowned self] button in
+                self.updateStatus(in: screenData, onTapped: button)
             })
             .sink(receiveValue: { [unowned self] _ in
                 self.dataLoaderSubject.send(false)
@@ -58,21 +58,22 @@ class MovieDetailsViewModel {
     
     
 }
-#warning("this is a but funky to me, maybe having 'watched' and 'fav' properties also? Maybe having function to change values in 'InfoItem' so i dont have to call dataLoaderSubject in line 49, instead have the function return new info item, tho that seems a lot of code then")
+
 extension MovieDetailsViewModel {
-    func updateStatus(in movies: MovieRepresentable, for action: Action) {
-        switch action {
-        case .watchedTapped(let id):
+    func updateStatus(in movies: [RowItem], onTapped button: ActionButton) {
+        switch button.type {
+        case .watched:
             if MovieEntity.findByID(id) == nil {
                 CoreDataHelper.save(movieRepresentable, false, false)
             }
             CoreDataHelper.updateWatched(withId: id)
-        case .favouritedTapped(let id):
+        case .favourited:
             if MovieEntity.findByID(id) == nil {
                 CoreDataHelper.save(movieRepresentable, false, false)
             }
             CoreDataHelper.updateFavourited(withId: id)
         }
+        //switchState(in: screenData)
     }
     
     private func createScreenData(from movieDetails: MovieDetails) -> [RowItem] {
@@ -88,8 +89,18 @@ extension MovieDetailsViewModel {
     }
     
     private func createInfoItem(for id: Int, with posterPath: String) -> RowItem {
-        let dbMoview = MovieEntity.findByID(id)
-        return RowItem(content: InfoItem(posterPath: posterPath, watched: dbMoview?.watched ?? false, favourited: dbMoview?.favourite ?? false) , type: .poster)
+        let dbMovie = MovieEntity.findByID(id)
+        return RowItem(content: InfoItem(posterPath: posterPath, watched: dbMovie?.watched ?? false, favourited: dbMovie?.favourite ?? false) , type: .poster)
         
     }
+    
+//    private func switchState(in screenData: [RowItem]) {
+//        let posterPath = movieRepresentable.posterPath
+//        for index in 0..<screenData.count {
+//            if screenData[index].type == .poster {
+//                let newInfoItem = createInfoItem(for: id, with: posterPath)
+//                self.screenData.append(RowItem(content: newInfoItem, type: .poster))
+//            }
+//        }
+//    }
 }

@@ -35,15 +35,16 @@ class LabeledMoviesListViewController: UIViewController {
 
 //MARK: - Lifecycle
 extension LabeledMoviesListViewController {
-    override func viewWillAppear(_ animated: Bool) {
-        viewModel.fetchScreenData()
-    }
-    
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
         setupBindings()
     }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        viewModel.fetchScreenDataSubject.send()
+    }
+    
 }
 
 //MARK: - UI
@@ -80,21 +81,18 @@ extension LabeledMoviesListViewController {
 //MARK: - Methods
 extension LabeledMoviesListViewController {
     func setupBindings(){
+        viewModel.fetchScreenData(from: viewModel.fetchScreenDataSubject).store(in: &subscriptions)
+        
         viewModel.screenDataReadySubject
+            .subscribe(on: DispatchQueue.global(qos: .background))
+            .receive(on: RunLoop.main)
             .sink(receiveValue: { [weak self] _ in
                 self?.tableView.reloadData()
             })
             .store(in: &subscriptions)
         
-        let buttonTappedListener = viewModel.attachButtonTappedListener(listener: viewModel.buttonTappedSubject)
+        let buttonTappedListener = viewModel.attachActionButtonClickListener(listener: viewModel.actionButtonTappedSubject)
         buttonTappedListener.store(in: &subscriptions)
-    }
-    
-}
-
-extension LabeledMoviesListViewController: CellDelegate {
-    func onButtonTapped(ofId id: Int) {
-        viewModel.buttonTappedSubject.send(id)
     }
     
 }
@@ -109,7 +107,10 @@ extension LabeledMoviesListViewController: UITableViewDelegate, UITableViewDataS
         
         cell.configure(withMovieRepresentable: movieRepresentable, forType: viewModel.type)
         
-        cell.delegate = self
+        cell.button?.buttonTapped = { [weak self] button in
+            self?.viewModel.actionButtonTappedSubject.send(button)
+        }
+
         
         return cell
     }

@@ -22,6 +22,7 @@
 		0259C3AC2583E966004BBEB5 /* MovieEntity+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0259C3AB2583E966004BBEB5 /* MovieEntity+CoreDataClass.swift */; };
 		0259C3AD2583E966004BBEB5 /* MovieEntity+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0259C3AA2583E966004BBEB5 /* MovieEntity+CoreDataProperties.swift */; };
 		0259C3B22583E985004BBEB5 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0259C3B12583E985004BBEB5 /* Constants.swift */; };
+		027435BB2588018D00310FAC /* ReloadAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 027435BA2588018D00310FAC /* ReloadAction.swift */; };
 		0276D65E257CD19F005C396F /* MovieDetailsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0276D65D257CD19F005C396F /* MovieDetailsViewModel.swift */; };
 		0281C6402578DD4D00042742 /* NowPlayingViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0281C63F2578DD4D00042742 /* NowPlayingViewModel.swift */; };
 		028315BD2552E5C3008F9963 /* WatchedCustomButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 028315BC2552E5C3008F9963 /* WatchedCustomButton.swift */; };
@@ -69,6 +70,7 @@
 		0259C3AA2583E966004BBEB5 /* MovieEntity+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MovieEntity+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		0259C3AB2583E966004BBEB5 /* MovieEntity+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MovieEntity+CoreDataClass.swift"; sourceTree = "<group>"; };
 		0259C3B12583E985004BBEB5 /* Constants.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
+		027435BA2588018D00310FAC /* ReloadAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReloadAction.swift; sourceTree = "<group>"; };
 		0276D65D257CD19F005C396F /* MovieDetailsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovieDetailsViewModel.swift; sourceTree = "<group>"; };
 		0281C63F2578DD4D00042742 /* NowPlayingViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingViewModel.swift; sourceTree = "<group>"; };
 		028315BC2552E5C3008F9963 /* WatchedCustomButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchedCustomButton.swift; sourceTree = "<group>"; };
@@ -337,6 +339,7 @@
 			children = (
 				028FA7E225503F1900942985 /* RowItem.swift */,
 				02AB2ADB255F1CA700FA7628 /* BlurLoaderHelper.swift */,
+				027435BA2588018D00310FAC /* ReloadAction.swift */,
 			);
 			path = Subclasses;
 			sourceTree = "<group>";
@@ -604,6 +607,7 @@
 				0250EC682551D1780034E527 /* Extensions+UIViewController.swift in Sources */,
 				02BBD5C2254C3CB700058844 /* Movie.swift in Sources */,
 				028FA7E825503F6500942985 /* EnumMovieDetailsCellTypes.swift in Sources */,
+				027435BB2588018D00310FAC /* ReloadAction.swift in Sources */,
 				0246204025519EF4003F6770 /* ReusableView.swift in Sources */,
 				02E29253254C711A0088E7A6 /* MovieDetails.swift in Sources */,
 				028FA7D9255039C000942985 /* MovieGenresCell.swift in Sources */,

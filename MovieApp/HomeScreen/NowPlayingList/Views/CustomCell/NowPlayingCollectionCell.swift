@@ -6,11 +6,6 @@
 //
 
 import UIKit
-enum Action {
-    case watchedTapped(Int)
-    case favouritedTapped(Int)
-}
-
 class NowPlayingCollectionCell: UICollectionViewCell {
     
     //MARK: Properties

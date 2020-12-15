@@ -104,7 +104,7 @@ extension MovieDetailsViewController {
             })
             .store(in: &subscriptions)
         
-        let buttonListener = viewModel.attachButtonClickListener(listener: viewModel.buttonTappedSubject)
+        let buttonListener = viewModel.attachButtonClickListener(listener: viewModel.actionButtonTappedSubject)
         buttonListener.store(in: &subscriptions)
     }
     
@@ -116,12 +116,8 @@ extension MovieDetailsViewController {
         }
     }
     
-    private func updateButtonState(for type: CustomButtonType) {
-        if type == .watched {
-            viewModel.buttonTappedSubject.send(Action.watchedTapped(id))
-        } else {
-            viewModel.buttonTappedSubject.send(Action.favouritedTapped(id))
-        }
+    private func processButtonTap(of button: ActionButton) {
+        viewModel.actionButtonTappedSubject.send(button)
     }
 
 }
@@ -145,8 +141,11 @@ extension MovieDetailsViewController: UITableViewDelegate, UITableViewDataSource
             
             cell.configure(with: item)
             
-            cell.shouldChangeButtonState = { [weak self] type in
-                self?.updateButtonState(for: type)
+            cell.watchedButton.buttonTapped = { [weak self] button in
+                self?.processButtonTap(of: button)
+            }
+            cell.favouritesButton.buttonTapped = { [weak self] button in
+                self?.processButtonTap(of: button)
             }
             
             return cell

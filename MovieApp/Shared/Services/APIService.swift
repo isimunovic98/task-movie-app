@@ -10,44 +10,27 @@ import Alamofire
 import Combine
 
 enum NetworkError: Error {
-    case invalidUrl
-    case invalidRequest
     case jsonDecodingError(error: Error)
 }
 
 class APIService {
     
-    static func fetch<T: Codable>(from url: String, of: T.Type,using completion: @escaping (_ data: T?,_ message: String) -> Void) {
-        AF.request(url).validate().responseData { (response) in
-            guard let data = response.data else {
-                completion(nil, "")
-                return
-                }
-            do {
-                let decodedObject: T = try JSONDecoder().decode(T.self, from: data)
-                completion(decodedObject, "")
-            } catch {
-                completion(nil, error.localizedDescription)            }
-           }
-    }
-    
-    static func fetchItems<T: Codable>(from urlString: String, for: T.Type) -> AnyPublisher<T, Error>{
+    static func fetchItems<T: Codable>(from urlString: String, as type: T.Type) -> AnyPublisher<T, Error>{
         guard let url = URL(string: urlString) else {
-            //if i had never could just return Just
-            fatalError()
+            let error = URLError(.badURL, userInfo: [NSURLErrorKey: urlString])
+            return Fail(error: error).eraseToAnyPublisher()
         }
         
-        return URLSession.shared.dataTaskPublisher(for: url)
-            .subscribe(on: DispatchQueue.global(qos: .background))
-            .tryMap { data, response -> Data in
-                guard response is HTTPURLResponse else {
-                    throw NetworkError.invalidRequest
-                }
-                return data
+        
+        return URLSession.shared
+            .dataTaskPublisher(for: url)
+            .tryMap { result -> T in
+                return try JSONDecoder().decode(T.self, from: result.data)
             }
-            .decode(type: T.self, decoder: JSONDecoder())
+            .catch { error in
+                return Fail(error: NetworkError.jsonDecodingError(error: error))
+            }
             .eraseToAnyPublisher()
     }
-
 }
 

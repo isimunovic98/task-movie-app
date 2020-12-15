@@ -116,6 +116,18 @@ extension NowPlayingViewController {
             .sink(receiveValue: { _ in })
             .store(in: &subscriptions)
     
+        viewModel.errorHandlerSubject
+            .subscribe(on: DispatchQueue.global(qos: .background))
+            .receive(on: RunLoop.main)
+            .sink{ [weak self] error in
+                if error is NetworkError {
+                    self?.presentJSONErrorAlert()
+                } else {
+                    self?.presentInvalidUrlAlert()
+                }
+            }
+            .store(in: &subscriptions)
+        
         viewModel.attachActionButtonClickListener(listener: viewModel.actionButtonTappedSubject).store(in: &subscriptions)
         
     }

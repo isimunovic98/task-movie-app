@@ -8,29 +8,25 @@
 import Foundation
 import Combine
 
-//better naming
-enum State {
-    case reloadAll
-    case reloadCell(Int)
-}
-
 class NowPlayingViewModel {
     var screenData: [MovieRepresentable] = []
     
     let actionButtonTappedSubject = PassthroughSubject<ActionButton, Never>()
     
-    let screenDataReadySubject = PassthroughSubject<State, Never>()
+    let screenDataReadySubject = PassthroughSubject<ReloadAction, Never>()
     let dataLoaderSubject = CurrentValueSubject<Bool, Never>(true)
     let shouldShowBlurLoaderSubject = PassthroughSubject<Bool, Never>()
+    let errorHandlerSubject = PassthroughSubject<Error, Never>()
     
     func fetchItems(with dataLoader: CurrentValueSubject<Bool, Never>) -> AnyCancellable {
        return dataLoader
         .subscribe(on: DispatchQueue.global(qos: .background))
         .receive(on: DispatchQueue.global(qos: .background))
-            .flatMap { [unowned self] value -> AnyPublisher<Movies, Error> in
-                self.shouldShowBlurLoaderSubject.send(true)
-                return APIService.fetchItems(from: Constants.ALL_MOVIES_URL, for: Movies.self)
-            }
+        .flatMap { [unowned self] value -> AnyPublisher<Movies, Error> in
+            self.shouldShowBlurLoaderSubject.send(true)
+            
+            return APIService.fetchItems(from: Constants.ALL_MOVIES_URL, as: Movies.self)
+        }
         .subscribe(on: DispatchQueue.global(qos: .background))
         .receive(on: RunLoop.main)
             .map{ [unowned self] movies in
@@ -38,12 +34,12 @@ class NowPlayingViewModel {
                     self.createScreenData(from: $0)
                 }
             }
-            .sink(receiveCompletion: { completion in
+            .sink(receiveCompletion: { [unowned self] completion in
                 switch completion {
                     case .finished:
                         break
-                    case .failure(let anError):
-                        print("received error: ", anError)
+                    case .failure(let error):
+                        self.errorHandlerSubject.send(error)
                 }
             }, receiveValue: { [unowned self] moviesRepresentable in
                 self.screenData = moviesRepresentable
