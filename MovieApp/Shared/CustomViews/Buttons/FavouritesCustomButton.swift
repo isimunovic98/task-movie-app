@@ -7,8 +7,11 @@
 
 import UIKit
 
-class FavouritesCustomButton: UIButton {
+class FavouritesCustomButton: UIButton, CustomButton {
+    var type: CustomButtonType = .favourited
+    
 
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
         self.setImage(UIImage(named: "favouritesEmpty"), for: .normal)

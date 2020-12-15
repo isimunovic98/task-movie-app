@@ -7,22 +7,30 @@
 
 import Foundation
 import Alamofire
+import Combine
+
+enum NetworkError: Error {
+    case jsonDecodingError(error: Error)
+}
 
 class APIService {
     
-    func fetch<T: Codable>(from url: String, of: T.Type,using completion: @escaping (_ data: T?,_ status: Bool,_ message: String) -> Void) {
-        AF.request(url).validate().responseData { (response) in
-            guard let data = response.data else {
-                completion(nil, false, "")
-                return
-                }
-            do {
-                let decodedObject: T = try JSONDecoder().decode(T.self, from: data)
-                completion(decodedObject, true, "")
-            } catch {
-                completion(nil, false, error.localizedDescription)            }
-           }
+    static func fetchItems<T: Codable>(from urlString: String, as type: T.Type) -> AnyPublisher<T, Error>{
+        guard let url = URL(string: urlString) else {
+            let error = URLError(.badURL, userInfo: [NSURLErrorKey: urlString])
+            return Fail(error: error).eraseToAnyPublisher()
+        }
+        
+        
+        return URLSession.shared
+            .dataTaskPublisher(for: url)
+            .tryMap { result -> T in
+                return try JSONDecoder().decode(T.self, from: result.data)
+            }
+            .catch { error in
+                return Fail(error: NetworkError.jsonDecodingError(error: error))
+            }
+            .eraseToAnyPublisher()
     }
-
 }
 
