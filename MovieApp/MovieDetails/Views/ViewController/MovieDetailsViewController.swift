@@ -181,6 +181,10 @@ extension MovieDetailsViewController: UITableViewDelegate, UITableViewDataSource
             cell.setMovieOverview(overview: overview as! String)
             
             return cell
+            
+        case .similarMovies:
+            let cell: SimilarMoviesTableViewCell = tableView.dequeue(for: indexPath)
+            return cell
         }
     }
     
@@ -192,6 +196,7 @@ extension MovieDetailsViewController: UITableViewDelegate, UITableViewDataSource
         tableView.register(MovieGenresCell.self, forCellReuseIdentifier: MovieGenresCell.reuseIdentifier)
         tableView.register(MovieQuoteCell.self, forCellReuseIdentifier: MovieQuoteCell.reuseIdentifier)
         tableView.register(MovieOverviewCell.self, forCellReuseIdentifier: MovieOverviewCell.reuseIdentifier)
+        tableView.register(SimilarMoviesTableViewCell.self, forCellReuseIdentifier: SimilarMoviesTableViewCell.reuseIdentifier)
     }
     
     func setTableViewDelegates() {

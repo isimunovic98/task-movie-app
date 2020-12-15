@@ -84,7 +84,7 @@ extension MovieDetailsViewModel {
         rowItems.append(RowItem(content: movieDetails.genres, type: .genres))
         rowItems.append(RowItem(content: movieDetails.tagline, type: .quote))
         rowItems.append(RowItem(content: movieDetails.overview , type: .overview))
-        
+        rowItems.append(RowItem(content: "dummy", type: .similarMovies))
         return rowItems
     }
     

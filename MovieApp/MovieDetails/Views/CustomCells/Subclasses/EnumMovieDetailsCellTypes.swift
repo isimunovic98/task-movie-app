@@ -13,4 +13,5 @@ enum MovieDetailsCellTypes {
     case genres
     case quote
     case overview
+    case similarMovies
 }
