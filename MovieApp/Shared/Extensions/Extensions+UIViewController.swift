@@ -9,8 +9,8 @@ import UIKit
 
 extension UIViewController {
     
-    func presentNilURLAlert() {
-        let alert = UIAlertController(title: "Error", message: "Url is nil", preferredStyle: .alert)
+    func presentInvalidUrlAlert() {
+        let alert = UIAlertController(title: "Error", message: "Url is invalid", preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .cancel, handler: nil))
         self.present(alert, animated: false, completion: nil)
     }
@@ -21,4 +21,12 @@ extension UIViewController {
         self.present(alert, animated: false, completion: nil)
     }
     
+    func showBlurLoader() {
+        BlurLoaderHelper.addBlurLoader(to: self.view)
+    }
+    
+    func removeBlurLoader() {
+        BlurLoaderHelper.removeBlurLoader()
+    }
 }
+
