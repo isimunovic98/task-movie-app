@@ -45,7 +45,7 @@ class MoviePosterCell: UITableViewCell {
     }
     
     func configure(with item: InfoItem) {
-        moviePosterImageView.setImageFromUrl(Constants.IMAGE_BASE_PATH + item.posterPath)
+        moviePosterImageView.setImageFromUrl(Constants.poster(path: item.posterPath))
         watchedButton.isSelected = item.watched
         favouritesButton.isSelected = item.favourited
     }

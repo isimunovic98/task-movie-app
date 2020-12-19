@@ -27,4 +27,12 @@ struct InfoItem {
          self.watched = watched
          self.favourited = favourited
      }
+    
+    mutating func switchWatched() {
+        self.watched = !watched
+    }
+    
+    mutating func switchFavourited() {
+        self.favourited = !favourited
+    }
  }

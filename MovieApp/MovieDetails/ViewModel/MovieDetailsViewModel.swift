@@ -25,18 +25,37 @@ class MovieDetailsViewModel {
     func fetchItems(dataLoader: PassthroughSubject<Bool, Never>) -> AnyCancellable {
         return dataLoader
             .subscribe(on: DispatchQueue.global(qos: .background))
-            .receive(on: DispatchQueue.global(qos: .background))
-            .flatMap { [unowned self] value -> AnyPublisher<MovieDetails, Error> in
-                self.shouldShowBlurLoaderSubject.send(true)
-                return APIService.fetchItems(from: Constants.MovieDetails.response + String(id) + Constants.MovieDetails.apiKey, as: MovieDetails.self)
-            }
-            .subscribe(on: DispatchQueue.global(qos: .background))
             .receive(on: RunLoop.main)
-            .map{ [unowned self] movieDetails in
-                self.createScreenData(from: movieDetails)
+            .flatMap { [unowned self] value -> AnyPublisher<[RowItem], Error> in
+                self.shouldShowBlurLoaderSubject.send(true)
+                
+                let similarMovies = APIService.fetchItems(from: Constants.similarMovies(of: id), as: SimilarMovies.self)
+                    .map({
+                        $0.similarMovies
+                    })
+                    .receive(on: RunLoop.main)
+                    .eraseToAnyPublisher()
+                
+                let movieDetails = APIService.fetchItems(from: Constants.movieDetails(of: id), as: MovieDetails.self)
+                    .receive(on: RunLoop.main)
+                    .eraseToAnyPublisher()
+                
+                var screenDataPublisher: AnyPublisher<[RowItem], Error> {
+                    return Publishers.CombineLatest(movieDetails, similarMovies)
+                        .map({ details, similars in
+                            self.createScreenData(from: details, and: similars)
+                        })
+                        .eraseToAnyPublisher()
+                }
+                return screenDataPublisher
             }
-            .sink(receiveCompletion: { _ in
-                //Error handling
+            .sink(receiveCompletion: { completion in
+                switch completion {
+                    case .finished:
+                        break
+                    case .failure(let error):
+                        print(error)
+                }
             }, receiveValue: { [unowned self] screenData in
                 self.screenData = screenData
                 self.screenDataReadySubject.send()
@@ -52,7 +71,7 @@ class MovieDetailsViewModel {
                 self.updateStatus(in: screenData, onTapped: button)
             })
             .sink(receiveValue: { [unowned self] _ in
-                self.dataLoaderSubject.send(false)
+                self.screenDataReadySubject.send()
             })
     }
     
@@ -60,23 +79,8 @@ class MovieDetailsViewModel {
 }
 
 extension MovieDetailsViewModel {
-    func updateStatus(in movies: [RowItem], onTapped button: ActionButton) {
-        switch button.type {
-        case .watched:
-            if MovieEntity.findByID(id) == nil {
-                CoreDataHelper.save(movieRepresentable, false, false)
-            }
-            CoreDataHelper.updateWatched(withId: id)
-        case .favourited:
-            if MovieEntity.findByID(id) == nil {
-                CoreDataHelper.save(movieRepresentable, false, false)
-            }
-            CoreDataHelper.updateFavourited(withId: id)
-        }
-        //switchState(in: screenData)
-    }
-    
-    private func createScreenData(from movieDetails: MovieDetails) -> [RowItem] {
+    //MARK: Data Creation
+    private func createScreenData(from movieDetails: MovieDetails, and similarMovies: [SimilarMovie]) -> [RowItem] {
         movieRepresentable = MovieRepresentable(movieDetails)
         var rowItems = [RowItem]()
         rowItems.append(createInfoItem(for: id, with: movieDetails.posterPath))
@@ -84,7 +88,7 @@ extension MovieDetailsViewModel {
         rowItems.append(RowItem(content: movieDetails.genres, type: .genres))
         rowItems.append(RowItem(content: movieDetails.tagline, type: .quote))
         rowItems.append(RowItem(content: movieDetails.overview , type: .overview))
-        rowItems.append(RowItem(content: "dummy", type: .similarMovies))
+        rowItems.append(RowItem(content: similarMovies, type: .similarMovies))
         return rowItems
     }
     
@@ -93,14 +97,38 @@ extension MovieDetailsViewModel {
         return RowItem(content: InfoItem(posterPath: posterPath, watched: dbMovie?.watched ?? false, favourited: dbMovie?.favourite ?? false) , type: .poster)
         
     }
+
+    //MARK: Button Clicks
+    func updateStatus(in movies: [RowItem], onTapped button: ActionButton) {
+        
+        if MovieEntity.findByID(id) == nil {
+            CoreDataHelper.save(movieRepresentable, false, false)
+        }
+        
+        switch button.type {
+        case .watched:
+            CoreDataHelper.updateWatched(withId: id)
+            switchState(in: screenData, on: .watched)
+        case .favourited:
+            CoreDataHelper.updateFavourited(withId: id)
+            switchState(in: screenData, on: .favourited)
+        }
+    }
     
-//    private func switchState(in screenData: [RowItem]) {
-//        let posterPath = movieRepresentable.posterPath
-//        for index in 0..<screenData.count {
-//            if screenData[index].type == .poster {
-//                let newInfoItem = createInfoItem(for: id, with: posterPath)
-//                self.screenData.append(RowItem(content: newInfoItem, type: .poster))
-//            }
-//        }
-//    }
+    private func switchState(in screenData: [RowItem], on type: ActionButtonType) {
+        for (index, cell) in screenData.enumerated() {
+            if cell.type == .poster {
+                if var item = cell.content as? InfoItem {
+                    switch type {
+                    case .watched:
+                        item.switchWatched()
+                    case .favourited:
+                        item.switchFavourited()
+                    }
+                    self.screenData[index].content = item
+                }
+            }
+        }
+    }
+    
 }

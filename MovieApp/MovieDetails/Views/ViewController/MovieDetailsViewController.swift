@@ -184,6 +184,9 @@ extension MovieDetailsViewController: UITableViewDelegate, UITableViewDataSource
             
         case .similarMovies:
             let cell: SimilarMoviesTableViewCell = tableView.dequeue(for: indexPath)
+            
+            let similarMovies = viewModel.screenData[indexPath.row].content
+            cell.similarMovies = similarMovies as! [SimilarMovie]
             return cell
         }
     }

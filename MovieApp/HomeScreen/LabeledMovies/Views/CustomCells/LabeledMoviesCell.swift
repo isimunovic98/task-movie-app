@@ -117,7 +117,7 @@ extension LabeledMoviesCell {
 extension LabeledMoviesCell {
     
     func configure(withMovieRepresentable movieRepresentable: MovieRepresentable, forType type: LabeledMoviesType) {
-        moviePosterImageView.setImageFromUrl(Constants.IMAGE_BASE_PATH + movieRepresentable.posterPath)
+        moviePosterImageView.setImageFromUrl(Constants.poster(path: movieRepresentable.posterPath))
         yearOfReleaseLabel.text = movieRepresentable.releaseDate.extractYear
         movieTitleLabel.text = movieRepresentable.title
         movieOverviewLabel.text = movieRepresentable.overview

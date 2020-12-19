@@ -143,7 +143,6 @@ class CoreDataHelper {
         if let result = try? context.fetch(deleteRequest) {
             for object in result {
                 context.delete(object as! NSManagedObject)
-                print("deleted movie")
             }
         }
         
