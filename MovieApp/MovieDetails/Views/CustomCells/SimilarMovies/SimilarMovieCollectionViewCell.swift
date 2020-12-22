@@ -20,7 +20,7 @@ class SimilarMovieCollectionViewCell: UICollectionViewCell {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.numberOfLines = 2
-        label.font = label.font.withSize(14)
+        label.font = UIFont(name: "ChalkboardSE-Bold", size: 14)
         label.textColor = .white
         return label
     }()
@@ -45,11 +45,13 @@ class SimilarMovieCollectionViewCell: UICollectionViewCell {
 extension SimilarMovieCollectionViewCell {
     
     func setupUI() {
-        backgroundColor = .white
+        backgroundColor = UIColor(named: "cellColor")
         contentView.addSubview(posterImageView)
         posterImageView.addSubview(gradient)
         contentView.addSubview(titleLabel)
         setupConstraints()
+        contentView.layer.cornerRadius = 12
+        contentView.layer.masksToBounds = true
     }
     
     func setupConstraints() {
@@ -62,7 +64,7 @@ extension SimilarMovieCollectionViewCell {
         }
         
         titleLabel.snp.makeConstraints { (make) in
-            make.leading.trailing.bottom.equalTo(posterImageView)
+            make.bottom.leading.equalTo(posterImageView).inset(8)
         }
     }
 }

@@ -80,7 +80,7 @@ extension MoviePosterCell {
             make.trailing.equalTo(moviePosterImageView).offset(-15)
             make.size.equalTo(45)
         }
-        
+
         watchedButton.snp.makeConstraints { (make) in
             make.top.equalTo(moviePosterImageView)
             make.trailing.equalTo(favouritesButton.snp.leading).offset(-15)

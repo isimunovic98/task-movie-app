@@ -44,7 +44,7 @@ extension SimilarMoviesTableViewCell {
         collectionView.snp.makeConstraints { (make) in
             make.top.equalTo(contentView).offset(15)
             make.leading.trailing.bottom.equalTo(contentView)
-            make.height.equalTo(180)
+            make.height.equalTo(220)
         }
     }
     
@@ -57,9 +57,9 @@ extension SimilarMoviesTableViewCell {
 }
 
 //MARK: - CollectionViewDelegate
-extension SimilarMoviesTableViewCell: UICollectionViewDelegate {
-    //TO-DO on item press
-}
+//extension SimilarMoviesTableViewCell: UICollectionViewDelegate {
+//    //TO-DO on item press
+//}
 
 //MARK: - CollectionViewDataSource
 extension SimilarMoviesTableViewCell: UICollectionViewDataSource {

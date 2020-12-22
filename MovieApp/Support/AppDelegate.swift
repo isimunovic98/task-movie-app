@@ -15,20 +15,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
     
-        let nowPlayingViewModel = NowPlayingViewModel()
-        let nowPlayingVC = NowPlayingViewController(viewModel: nowPlayingViewModel)
-        nowPlayingVC.tabBarItem.image = UIImage(named: "home")
         
-        let watchedListVM = LabeledMoviesViewModel(type: .watched)
-        let watchedListVC = LabeledMoviesListViewController(viewModel: watchedListVM)
-        watchedListVC.tabBarItem.image = UIImage(named: "watched")
-        
-        let favouritedVM = LabeledMoviesViewModel(type: .favourited)
-        let favouriteListVC = LabeledMoviesListViewController(viewModel: favouritedVM)
-        favouriteListVC.tabBarItem.image = UIImage(named: "favourite")
-        
-        let tabBarController = UITabBarController()
-        tabBarController.viewControllers = [nowPlayingVC, watchedListVC, favouriteListVC]
+        let tabBarController = HomeTabBarController()
         
         let navigationController = UINavigationController(rootViewController: tabBarController)
         

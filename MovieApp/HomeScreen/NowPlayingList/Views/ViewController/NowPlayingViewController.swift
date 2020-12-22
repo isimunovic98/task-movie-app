@@ -55,7 +55,6 @@ extension NowPlayingViewController {
         viewModel.dataLoaderSubject.send(true)
         navigationController?.setNavigationBarHidden(true, animated: false)
     }
-    
 }
 
 //MARK: - UI
@@ -82,7 +81,7 @@ extension NowPlayingViewController {
     
     private func setupConstraints() {
         collectionView.snp.makeConstraints { (make) in
-            make.top.leading.trailing.bottom.equalTo(self.view.safeAreaLayoutGuide)
+            make.top.leading.trailing.bottom.equalTo(view.safeAreaLayoutGuide)
         }
     }
 }
@@ -203,9 +202,9 @@ extension NowPlayingViewController: UICollectionViewDelegateFlowLayout {
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        let padding: CGFloat =  30
+        let padding: CGFloat = 30
         let collectionViewSize = collectionView.frame.size.width - padding
         
-        return CGSize(width: collectionViewSize/2, height: 250)
+        return CGSize(width: collectionViewSize/2, height: 350)
     }
 }

@@ -53,9 +53,6 @@ extension MovieDetailsViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         viewModel.dataLoaderSubject.send(true)
-        navigationController?.setNavigationBarHidden(false, animated: false)
-        self.navigationController!.navigationBar.barStyle = .black
-        self.navigationController!.navigationBar.isTranslucent = true
     }
 }
 //MARK: - UI
@@ -66,9 +63,11 @@ extension MovieDetailsViewController {
     }
     
     fileprivate func setupUI() {
+        view.backgroundColor = UIColor(named: "cellColor")
         addSubviews()
         setupConstraints()
         configureTableView()
+        setupNavigationBarAppearance()
     }
     
     fileprivate func addSubviews() {
@@ -78,8 +77,15 @@ extension MovieDetailsViewController {
     fileprivate func setupConstraints() {
         
         tableView.snp.makeConstraints { (make) in
-            make.top.leading.trailing.bottom.equalTo(view.safeAreaLayoutGuide)
+            make.top.leading.trailing.bottom.equalTo(view)
         }
+    }
+    
+    func setupNavigationBarAppearance() {
+        navigationController?.setNavigationBarHidden(false, animated: false)
+        navigationController?.navigationBar.setBackgroundImage(UIImage(), for: .default)
+        navigationController?.navigationBar.shadowImage = UIImage()
+        navigationController?.navigationBar.isTranslucent = true
     }
 }
 
